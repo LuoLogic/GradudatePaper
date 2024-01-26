@@ -1,71 +1,444 @@
 
 
-\chapter{总结与展望}
+
+
+\chapter{一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法}
 \thispagestyle{others}
 \pagestyle{others}
 \xiaosi
 
-\section{主要结论}
+\section{本章引言}
 
-本文主要……
 
-\section{研究展望}
 
-更深入的研究……
+\section{问题描述和研究思路}
 
-以下文字用于测试。
+显著图分辨率低，包含特征细节信息少仍然是当前绝大多数显著图解释方法的一个弊病。从基于卷积神经网络的图像分类神经网络来看，针对这一网络的显著图解释方法通常是从卷积神经网络的最后一层卷积层提取特征图。这一层包含了丰富的类别特征信息，然后通过加权组合这些特征图来生成最终的显著图。然而，由于卷积神经网络的结构特性，最后一层卷积层会输出多个通道的低分辨率特征图。因此，无论怎样组合这些特征图，最终得到的显著图分辨率仅与最后一层卷积层的单一通道特征图相当。当然，为了建立显著图与原始输入图片的特征对应关系，通常会对原始输入图片进行分辨率放大。这一过程通常采用双线性插值算法，但这并不意味着显著图中有效信息的增加。另外，当前的一些研究者也在积极探索对基于Tansformer架构的图像分类模型进行显著图解释，Chefer等人\textsuperscript{\cite{chefer2021transformer}}在近年发布了针对这一方面的研究，他们针对Transformer的结构的制定了新的层间相关性反向传播规则，解决了传播过程中遇到的注意层和跳跃连接时的挑战。他们将每一个Transformer块的梯度和其对应的相关性分数结合解决了Transformer在图像分类领域的显著图可视化问题。但是即便如此他们针对Transformer提出的方法仍然会面临低分辨率的困扰，究其原因是Transformer结构的图像分类神经网络反向传播过程中计算并生成显著图时也只能受限于token的尺寸，无法生成包含信息量更多的显著图。图\ref{fig:motivation}描述了这一问题，无论针对卷积神经网络的基于类激活映射图的方法还是针对Transformer架构提出的Transformer attribution方法（即Chefer等人提出的方法）都只能生成分辨率较低的原始显著图，之后通过上采样获得最终的显著图。
 
-以下文字用于测试。
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch4/motivation.pdf}
+	\bicaption[\xiaosi 当前显著图解释方法分辨低的原因]{\wuhao 当前显著图解释方法分辨低的原因}{\wuhao Reasons for the low resolution of current saliency map interpretation methods}
+	\label{fig:motivation}
+\end{figure}
 
-以下文字用于测试。
 
-以下文字用于测试。
+因此为了解决上述的问题，本章提出了一种通用的显著图增强方法，可以直接应用在多数可视化算法上。该方法使用固定尺寸的滑动窗口对输入图片中的所有局部区域上采样到输入图片尺寸，然后将结果输入到选定的可视化算法中得到所有图片的针对特定类别的显著图和概率分数，最后将显著图下采样到输入图片对应位置上的窗口中，并乘以概率分数，即可得到具备更多细节的显著图。将该方法应用在不同的可视化算法上，这些算法基于不同架构的网络，无论是量化指标还是直观评测都显示出我们的方法使这些可视化算法得到了明显提升，从而证明本章提出的方法的有效性和可靠性。
 
-以下文字用于测试。
 
-以下文字用于测试。
+\section{一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法}
+为了解决当前可视化算法存在的分辨率低，特征模糊，噪声多的问题，我们的方法在输入图片上应用了滑动窗口，通过采集并融合不同窗口图片的可视化信息，让可视化算法加强对输入图片中的局部信息的感知。
 
-以下文字用于测试。
+\subsection{获取窗口图片集合}
+设定原始输入图片$I_0 \in \mathbb{R}^{3\times H_0 \times W_0}$，使用一个二维滑动窗口函数$\psi(I, start, h, w, stride)$来从输入图片$I_0$中提取窗口图片，函数$\psi(I, start, h, w, stride)$中$I$就是函数所应用的输入图片，$start$表示滑动窗口在二维坐标系统的起点，一般设定在输入图片的左上角位置，$h$和$w$表示窗口像素尺寸且窗口尺寸应该小于输入图片尺寸，$stride$表示每次滑动窗口移动的像素个数，窗口从左上角起点开始移动，只能在图片区域内移动，即滑动窗口应该向右或者向左移动。每次移动则将窗口内的图片区域进行复制并保存，移动完毕后即可得到关于窗口图片的集合，单张窗口图片的获取的公式如下：
+\begin{equation}
+	p_{k_n}=\psi(I_0,start,h,w,stride)
+	\label{pkn}
+\end{equation}
+式\ref{pkn}中$p_{k_n}$表示一张窗口图片，$k_n$表示这张图片在输入图片$I_0$中的二维坐标标记。所有窗口图片的集合可以如下表示：
+\begin{equation}
+	\overset{*}{\bm{p}}=\{p_{k_1},p_{k_2},\cdots,p_{k_n}\}
+\label{ps}
+\end{equation}
+式\ref{ps}中，$\overset{*}{\bm{p}}$即表示滑动窗口所有窗口图片集合。获取的窗口图片尺寸是和窗口一致的，因此是无法直接输入图像分类模型的，所以需要将其上采样到原始输入图片$I_0$的尺寸，本方法上采样所用的函数是双线性插值函数$\phi$，具体上采样过程描述见如下公式：
+\begin{equation}
+	\overset{*}{\bm{P}}=\phi(\overset{*}{\bm{p}},H_0,W_0) 
+\label{Ps}
+\end{equation}
+式\ref{Ps}中，$H_0$和$W_0$是原始输入图片$I_0$的长和宽的像素个数，$\overset{*}{\bm{P}}$表示窗口图片上采样后的图片集合，因此 $\overset{*}{\bm{P}}=\{P_{k_1},P_{k_2},\cdots,P_{k_n}\}$，$P_{k_n}$即表示窗口图片$p_{k_n}$上采样到原始输入图片尺寸后的图片。
 
-以下文字用于测试。
+\subsection{获取窗口图片的显著图和权重}
+设定$\mathcal{F}$是经过预训练的图像分类神经网络，$\mathcal{F}_c(I)$表示当输入图片是$I$的情况下，图像分类神经网络$\mathcal{F}$关于类别$c$的输出概率分数。对于当前主流的显著图解释算法来说，将某一显著图解释算法考虑为一个函数$f$，该函数的输入参数是图像分类神经网络$\mathcal{F}$，输入图片$I$和指定类别$c$。当输入图片是$I_0$，可以获得图像分类神经网络$\mathcal{F}$在采用显著图解释算法$f$时生成的关于类别$c$的显著图：
+\begin{equation}
+	S_0=f(\mathcal{F},I_0,c)
+	\label{S0}
+\end{equation}
+式\ref{S0}是生成的显著图，且$S_0 \in \mathbb{R}^{1\times H_0 \times W_0}$。显著图$S_0$的分辨率和原始输入图片是一致的，因其已经经过上采样处理了。$S_0$中的像素和原始输入图片的像素是一一对应的，且其像素的值表示图像分类神经网络对输入图片$I_0$关于类别$c$的判断权值。现在已经获得了原始输入图片$I_0$的显著图，在上一小节当中，获取的窗口图片集合$\overset{*}{\bm{P}}$也需要经过同样的步骤分别获取每张窗口图片关于类别$c$的显著图：
+\begin{eqnarray}
+	\overset{*}{\bm{S}} &=& f(\mathcal {F}, \overset{*}{\bm{P}},c) \nonumber \\
+	~ &=& \{S_{k_1},S_{k_2},\cdots,S_{k_n}\}
+	\label{eq:Ss}
+\end{eqnarray}
+式\ref{eq:Ss}中$\overset{*}{\bm{S}}$表示图像分类神经网络$\mathcal{F}$对窗口图片集合生成的关于类别$c$的显著图集合，$\overset{*}{\bm{S}}$中所有显著图的分辨率都和原始输入图片$I_0$一致。
 
-以下文字用于测试。
+在所有基于类激活映射的显著图解释算法中，都采用了各种形式的特征图加权，而这一步骤对于衡量每个特征图关于类别$c$的贡献至关重要。为了衡量由不同窗口图片生成的显著图的重要性，可以获得每张窗口图片相对于类别$c$的概率分数。这个概率分数反映了图像分类神经网络关于窗口图片中类别$c$的特征信息的贡献权重。
+\begin{eqnarray}
+	\overset{*}{\bm{\alpha}} &=& \mathcal{F}_c(\overset{*}{\bm{P}}) \nonumber \\
+	~ &=& \{\alpha_{k_1},\alpha_{k_2},\cdots,\alpha_{k_n}\}
+\label{eq:alpha}
+\end{eqnarray}
+式\ref{eq:alpha}中$\overset{*}{\bm{\alpha}}$就是$\overset{*}{\bm{P}}$所有窗口图片的关于类别$c$的概率分数，以此作为$\overset{*}{\bm{S}}$的权重。
 
-以下文字用于测试。
+\subsection{融合窗口图片集合的显著图}
+由于不同窗口图片生成的显著图只包含了原始输入图片部分区域的特征信息，因此需要将所有窗口图片进行拼接融合从而得到包含丰富特征信息的完整显著图，这一将窗口图片显著图拼接融合的操作也变相提高了最终呈现特征图对细节特征的解释能力，能够给出更精确的特征信息。由于式\ref{eq:ss}中窗口图片显著图集合$\overset{*}{\bm{S}}$中的显著图尺寸和原始输入图片$I_0$的分辨率是一致的，因此要将其下采样至窗口图片的尺寸才方便根据其携带的在原始输入图片中的坐标信息进行拼接融合，具体的过程用公式表示如下：
+\begin{eqnarray}
+	\overset{*}{\bm{s}} &=& \phi(\overset{*}{\bm{S}},h,w) \nonumber \\
+	~ &=& \{s_{k_1},s_{k_2},\cdots,s_{k_n}\}
+\label{eq:ss}
+\end{eqnarray}
+式\ref{eq:ss}中，$\overset{*}{\bm{s}}$是窗口图片集合$\overset{*}{\bm{P}}$的显著图集合$\overset{*}{\bm{S}}$下采样至滑动窗口尺寸的显著图集合，$s_{k_n}$中的$k_n$表示该张显著图在原始输入图片中的坐标位置，这个坐标位置是用来方便后续显著图进行拼接融合的。
 
-以下文字用于测试。
+显著图拼接融合的具体方法是将所有$\overset{*}{\bm{s}}$中窗口尺寸的显著图乘以该显著图在$\overset{*}{\bm{\alpha}}$对应的权重，再根据记录的坐标和原始输入图片的显著图$S_0$中对应位置区域的像素值相加，窗口显著图拼接融合的具体公式如下：
+\begin{eqnarray}
+	S^{\prime}_c &=& \sum(\overset{*}{\bm{s}}\overset{*}{\bm{\alpha}}+S_0) \nonumber \\
+	~ &=& \sum_{k_1}^{k_n}(\alpha_{k_n}s_{k_n}+S_0^{k_n})
+	\label{eq:s'}
+\end{eqnarray}
+在式\ref{eq:s'}中，$S_0^{k_n}$中$k_n$表示原始输入图片的显著图$S_0$中左上角坐标为$k_n$长宽为$h$和$w$的窗口区域。$S^{\prime}_c$表示拼接融合后的显著图。
 
-以下文字用于测试。
+\subsection{平滑和归一化显著图}
+因为滑动窗口是以一定步长在输入图片上截取窗口图片，这会导致窗口图片的显著图的在按照以上方法进行融合的过程中不可避免的会在拼接融合后的显著图上留下网格状的痕迹，使得显著图视觉效果不够平滑。因此为了尽可能降低滑动窗口带来的不利影响，本方法使用了一个理想低通滤波器对其进行优化，将显著图中网格状的痕迹进行减弱或者消除。定义这个理想低通滤波器函数为$\delta$，$S^{\prime}_c$经过其处理的过程由以下式子定义：
 
-以下文字用于测试。
+\begin{equation}
+	S^{\prime\prime}_c= \Delta(S_c^{\prime},H(X,Y))
+	\label{eq:s''}
+\end{equation}
+式\ref{eq:s''}中，$H(X,Y)$为该理想低通滤波器的传递函数，它的具体定义如下：
+\begin{equation}
+	H(X,Y)=\left\{
+	\begin{aligned}
+		1 &&& D(X,Y)\leq D_0 \\
+		0 &&& D(X,Y) > D_0
+	\end{aligned}
+	\right.
+	\label{eq:hxy}
+\end{equation}
+在式\ref{eq:hxy}中，$D_0$是截止频率到频率域中心的距离，它决定了低通滤波器的频率响应范围。当$D(X,Y)$小于$D_0$时，$H(X,Y)$接近于1，表示对低频分量的保留；当$D(X,Y)$大于等于$D_0$时，$H(X,Y)$接近于0，表示对高频分量的抑制。因此，$D_0$决定了滤波器的频率截止位置，即在该位置之前的频率成分会被保留，之后的频率成分会被抑制。$D(X,Y)=\sqrt{X^2+Y^2}$是显著图$S^{\prime}_c$的频率域里的点$(X,Y)$到频率域中心的距离，频率域的中心通常指的是频率域图像的中心点，也就是频率为零的点。
 
-以下文字用于测试。
+最后，经过低通滤波器处理过后的显著图$S^{\prime\prime}_c$再经过最大最小归一化即可得到增强的且拥有更多特征细节的显著图$S_c$：
+\begin{equation}
+	S_c=\frac{S_c^{\prime\prime}-min(S_c^{\prime\prime})}{max(S_c^{\prime\prime})-min(S_c^{\prime\prime})}
+\end{equation}
 
-以下文字用于测试。
 
-以下文字用于测试。
+\subsection{掩膜优化}
+$\boldsymbol{M}$是经由输入图片多尺寸上采样放大后从卷积层中提取的特征图和梯度矩阵结合而得到的，相比单一原始输入图片得到掩膜（比如Score-CAM\textsuperscript{\cite{wang2020score}2}），$\boldsymbol{M}$包含更丰富的类别特征信息，但是目前得到$\boldsymbol{M}$仍然不能直接当作掩膜来扰动输入图片，它还有两个明显的缺点。第一点是$\boldsymbol{M}$的尺寸是$[1\times K \times H_0\times W_0]$，其中$K$是卷积层$l$输出的特征图的通道数量，一般我们取最后一层卷积层作为$l$，因此$K$的值将会是数百至上千，显然这样掩膜的数量太多了，若像Score-CAM\textsuperscript{\cite{wang2020score}3}一样逐个将掩膜去扰动原始输入图片得到权值，那样将会极为耗时。第二个缺点$\boldsymbol{M}$就是使用全局平均池化后的梯度作为特征图的权重，由于ReLU函数的零梯度问题\textsuperscript{\cite{zhang2021novel}}，这意味着$\boldsymbol{M}$显然会有噪声。因此，为了使$\boldsymbol{M}$成为合格的掩膜，需要让它变得更加纯净。
 
-以下文字用于测试。
+对于第一个缺陷，本节的解决办法是将$\boldsymbol{M}$中的$K$张掩膜平分为$B$个组，分类依据是它们的相邻关系，接着将每个组内的所有掩膜相加合并为一个掩膜，这个相加合并过程可由以下的公式计算得出：
+\begin{equation}
+	M_r=ReLU(\sum_{k=r\times g}^{(r+1)\times g-1}{M^k})
+	\label{eq:Mr}
+\end{equation}
+公式\ref{eq:Mr}中$g$是每个组中的特征图的数量且 $g=K/B$，$r$的取值范围是$\{0,1,2,\dots,B-1\}$，即合并完成后一共有$B$张掩膜，$M_r$是第$r$组中合并完成后的掩膜，$M^k$是$\boldsymbol{M}$中第$k$个通道的特征图。
 
-以下文字用于测试。
+对于第二个缺陷，我们设计了一个去噪函数$f(m_{ij},\theta)$，该函数中$m_{ij}$是掩膜$M_r$中第$i$行第$j$列的像素值，$\theta$是一个百分比值。具体的去噪计算结果由以下公式计算得出：
+\begin{equation}
+	f(m_{ij},\theta)= \begin{cases}
+		\ m_{ij}, & \rm if \enspace \it m_{ij}>p(M_r,\theta) ; \\
+		\ 0, & \rm otherwise .\\
+	\end{cases}
+	\label{eq:denoise}
+\end{equation}
+公式\ref{eq:denoise}中$p(M_r,\theta)$表示$M_r$的所有像素值从大到小处于$\theta$百分比的值，比如有100个像素值，每个像素值都是1到100中的一个整数取值且取值唯一，此时$\theta =70$，那么$p(M_r,\theta)=70$。\refeq{eq:denoise}公式的作用就是将掩膜$M_r$中百分比前$\theta$大的像素值保留，小于$p(M_r,\theta)$的像素值置为0。经过去噪操作后可以得到更加纯净的掩膜。
 
-以下文字用于测试。
+到目前为止，还剩下最后一个操作即可得到最终的掩膜。将$M_r$中的所有像素值进行最大最小归一化，使其像素值区间位于$[0,1]$，这样方便将掩膜直接和输入图片相乘进行扰动操作。具体计算公式如下：
+\begin{equation}
+	M^{\prime}_r=\frac{M_r-min(M_r)}{max(M_r)-min(M_r)}\label{e_minmax}
+\end{equation}
+最后，掩膜$M^{\prime}_r$有这和原始输入图片$I_0$一致的分辨率且掩膜的像素值和$I_0$中的像素值一一对应。
 
-以下文字用于测试。
+\subsection{生成显著图}
+如果显著性方法确实识别出了对模型预测有重要意义的像素，那么这一点就应该反映在重建图像的模型输出当中\textsuperscript{\cite{kapishnikov2019xrai}}。将$M^{\prime}_r$作为掩膜来扰动原始输入图片$I_0$，其背后的原理是从原始输入图像中保留掩膜中获得的关于类别$c$的特征信息，让图像分类模型来判断保留的这部分信息的重要性，判断依据就是图像分类模型对扰动后的图片关于类别$c$的输出概率分数。但是，如果直接将掩膜和原始输入图像相乘进行扰动，那么扰动后的图像中的被掩盖区域和被凸显的区域之间的边界会过于明显锐利，从而对图像分类神经网络造成对抗效果\textsuperscript{\cite{dabkowski2017real}}。
 
-以下文字用于测试。
+为了遇到避免上述的问题，高斯模糊函数被引入到了接下来的改进方法中。具体方法是将扰动区域即被掩膜遮盖的区域用高斯模糊后的原始输入图片的对应区域进行替代，这样可以使得凸显的图片区域和被扰动的图片区域之间的边界更加平滑，从而像真实图片，不易让图像分类神经网络产生异常的输出。对于单一掩膜$M^{\prime}_r$，这个扰动模式可以由以下的公式计算得出：
+\begin{equation}
+	I_r=I_0\odot M^{\prime}_r+I^{\prime}_0\odot (1-M^{\prime}_r)
+	\label{eq:Ir}
+\end{equation}
+公式\ref{eq:Ir}中，$I^{\prime}_0$是将原始输入图片$I_0$高斯模糊后的得到的，$I^{\prime}_0$作为一张基础图片送入图像分类模型$\mathcal{F}$当中，当然得到其关于类别$c$的输出结果$\mathcal{F}_c(I^{\prime}_0)$是一个非常低的值且趋近于0。具体的高斯模糊函数是$guassian\_blur2d(input,kernel\_size,sigma)$，在本章中，参照Group-CAM\textsuperscript{\cite{zhang2021novel}}的工作，设置高斯模糊的参数$kernel\_size=51$和$sigma=50$。 $1-M^{\prime}_r$表示$M^{\prime}_r$中每个像素值都作为减数被1相减，作用是将掩膜中关于类别$c$的特征信息进行凸显。
 
-以下文字用于测试。
+参考RISE\textsuperscript{\cite{petsiuk2018rise}}中的方法，每张掩膜$M_r$的权重$\alpha_r$可以由扰动后的$I_r$输入到图像分类模型$\mathcal{F}$中得到。$\mathcal{F}_c(I_r)$则是该权重，其表示模型对显著图区域中类别$c$的特征信息的感兴趣程度。具体计算公式由以下式子给出：
+\begin{equation}
+	\alpha_r=\mathcal{F}_c(I_r)-\mathcal{F}_c(I^{\prime}_0)
+\end{equation}
+最终的显著图即将所有$M_r$的权重$\alpha_r$和其本身相乘，并经过ReLU函数后得到，ReLU函数的作用是保留显著图中的正值，即模型关于类别$c$感兴趣的像素区域。具体式子如下表示：
+\begin{equation}
+	L_{MSG-CAM}=ReLU(\sum_{r}\alpha_r M_r)
+\end{equation}
 
-以下文字用于测试。
 
-以下文字用于测试。
 
-以下文字用于测试。
 
-以下文字用于测试。
+\section{实验与分析}
 
-以下文字用于测试。
+\subsection{实验硬件配置和软件环境}
+下面给出本章实验的硬件配置和实验环境相关信息，具体信息见表\ref{tab:en}。
+\begin{table}[h]
+	\renewcommand{\arraystretch}{1.5}
+	\centering
+	\bicaption[\xiaosi 实验环境和硬件配置]{\wuhao 实验环境和硬件配置}{\wuhao Experimental environment and hardware configuration}
+	\begin{tabular}{p{3cm}p{2.25cm}p{2.25cm}p{2.25cm}p{2.25cm}}
+		\toprule[1.5pt]
+		\makecell[c]{\songti\wuhao CPU}&\makecell[c]{\songti\wuhao GPU}&\makecell[c]{\songti\wuhao 操作系统}&\makecell[c]{\songti\wuhao Python版本}&\makecell[c]{\songti\wuhao PyTorch版本}\\
+		\hline
+		\makecell[c]{\wuhao Intel$^\circledR$ Xeon$^\circledR$\\ \wuhao W-2255 CPU\\ \wuhao@3.70GHz}&\makecell[c]{\wuhao NVIDIA \\ \wuhao RTX A5000}&\makecell[c]{ \wuhao  Ubuntu20.04}&\makecell[c]{\wuhao Python3.8}&\makecell[c]{\wuhao 1.10.1+cu113}\\
+		\bottomrule[1.5pt]
+	\end{tabular}
+	\label{tab:en} 	
+\end{table}
 
-以下文字用于测试。
+\subsection{数据集及其预处理和实验参数说明}
+在本章的实验当中，主要使用了三个数据集，下面是三个数据集的简要介绍：
+1. ILSVRC 2012数据集
+ILSVRC 2012（ImageNet Large Scale Visual Recognition Challenge 2012）是一个用于视觉对象识别和定位的大规模数据集和竞赛。该数据集包含超过120万张标注图片，涵盖1000个不同类别的物体和场景。ILSVRC 2012竞赛旨在推动计算机视觉领域的发展，参与者需要开发能够识别图像中物体类别的算法，并对物体进行定位。该竞赛对于深度学习和卷积神经网络等技术的发展起到了重要推动作用，成为了评估图像识别算法性能的重要基准。ILSVRC 2012数据集的发布和竞赛对于推动计算机视觉领域的发展产生了深远影响。
 
+2. PASCAL VOC数据集
+PASCAL VOC（Visual Object Classes）数据集是一个常用的计算机视觉数据集，用于目标检测、图像分割和场景分类等任务。该数据集最初由牛津大学的计算机视觉研究组创建，包含了20个常见的物体类别，如人、狗、猫、飞机等。数据集中的图像来自于自然场景和网络图像，每个图像都标注了包含的物体类别和位置信息。PASCAL VOC数据集被广泛应用于评估目标检测和图像分割算法的性能，是计算机视觉领域中的重要基准数据集之一。同时，PASCAL VOC数据集也被用于举办国际性的计算机视觉竞赛，吸引了全球的研究者和工程师参与。通过使用PASCAL VOC数据集，研究人员可以开发和评估各种视觉任务的算法，推动计算机视觉技术的发展。
+
+3. COCO2014数据集
+COCO2014数据集（Common Objects in Context）是一个用于计算机视觉任务的大型数据集，包含超过200,000张图像和相关的注释信息。这些图像涵盖了80个不同类别的物体，并且每张图像都有多个物体的标注，这使得数据集在目标检测、图像分割和物体识别等任务中非常有用。COCO2014数据集的引入为计算机视觉领域的研究和发展提供了重要的资源，成为了许多视觉任务的标准基准。研究人员和开发者可以利用该数据集进行模型训练、算法评估和性能比较，从而推动计算机视觉技术的进步。COCO2014数据集的广泛应用促进了目标检测、图像分割和物体识别等领域的发展，为相关领域的研究和应用提供了有力支持。
+
+在本章当中插入与删除实验中使用的是ILSVRC 2012验证集，包含50000张图片，并且将该验证集中的图片尺寸调整为(3$\times$224$\times$224)，其中$3$是表示RGB颜色通道数量，像素值进行归一化调整，调整后的像素值范围是[0, 1]，最后使用Imagenet数据集的均值[0.229, 0.224, 0.225]和方差[0.485, 0.456, 0.406]对所有图片像素值进行标准化处理。在定点游戏实验中，使用了两个数据集，分别是PASCAL VOC数据集中的测试集，包含4952张图片，和COCO 2014数据集的验证集，包含50000张图片。用于本章实验的图像分类神经网络模型是torchvision提供的预训练模型VGG19\textsuperscript{\cite{simonyan2014very}}，它是基于卷积神经网络架构的。如果没有特别说明，本章提出的方法MSG-CAM的默认设置参数是$B=32$，$\theta=70$。所有方法生成的最终显著图默认都上采样至224$\times$224的分辨率。
+\subsection{定性评估}
+
+\subsection{插入（insertion）和删除（deletion）实验}
+插入（insertion）和删除（deletion）实验首次在RISE\textsuperscript{\cite{petsiuk2018rise}}实验中提出。插入实验背后所反映的原理是当我们按照显著图给出的像素重要程度优先级开始在原图的对应位置逐渐插入重要的像素直至完全插入所有像素，在此过程中记录每次插入操作时模型对指定类别给出的可能性概率分数。插入实验可以衡量显著图对像素重要性的排序是否与模型实际决策时关注的像素重要性排序一致。与之相反的是，删除实验则是按照显著图中给出的像素重要程度优先级逐渐从原输入图片中抹去对应的像素信息。和插入实验一样，删除实验也要求记录每次删除操作后模型对感兴趣类别给出的可能性分数。删除实验可以直观的呈现出缺失重要特征的像素信息后模型对感兴趣类别的置信程度下降情况。
+
+具体而言，对于插入实验，我们将原输入图片高斯模糊化后作为画布，随后每次迭代过程中，我们按照显著图给出的像素优先级逐渐向画布中对应的位置中引入原输入图片的像素，每次迭代过程中记录模型对引入像素后的的图片关于指定类别的可能性概率分数。为了更加精确的反映显著图的像素优先级，我们每次迭代只引入约0.89\%(224$\times$2)的像素。和插入实验相对比，删除实验每次迭代将原输入图片中的像素逐渐替代为画布上的像素，直到输入图片被完全替换为画布为止。删除实验每次迭代仍然是变更约0.89\%的在原图中的像素。需
+
+要特别说明的是，我们引入高斯模糊后的原输入图片作为画布是为了避免引入像素或者删除像素时产生过于锐利的边界，从而更加接近真实图片，避免产生对抗攻击的样本。此外，每次迭代记录的可能性分数都是经过softmax函数进行归一化后的数据。得到插入实验和删除实验每次迭代获得的分数后，我们使用概率分数随插入或者删除次数的曲线的曲线下面积（Area Under Curve)作为的作为量化指标。为了总体衡量插入实验和删除实验的优劣，我们使用总体（over-all）分数。按照上面关于插入实验和删除实验的描述，AUC(insertion)越高表明显著图越准确，同理，AUC(deletion)越低越好。因此，overall分数计算方式是AUC(insertion)-AUC(deletion)。图\ref{fig:IDCurve}展示了Grad-CAM、Score-CAM、Group-CAM和MSG-CAM为所选的4幅代表性图像生成了显著图以及相应的插入和删除曲线。对于删除曲线，更好的显著图解释方法给出的显著性图应尽可能快地下降，插入曲线与删除曲线正好相反。从图中可以看出本文提出的MSG-CAM在视觉解释效果以及插入删除曲线的表现来看均优于其他三种基于类激活映射的方法。
+
+
+表\ref{auc}列出了在50000张图像上进行插入和删除的实验结果。虽然MSG-CAM在单项指标上并不突出，但在AUC(overll)这项指标上却是第一名，比第二名的 Score-CAM高出1.07\%。此外，为了探究图像分类神经网络对目标类别的置信程度与三个指标之间的关系。我们根据每幅图像的分类类别的的最大得分将其分为11组，并统计每组的AUC(insertion)，AUC(insertion)和AUC(overall)，统计数据绘制成了表\ref{IDO}。 从图中可以看出，当图像的分类类别的概率分数较低时，各种显著图解释方法之间很难拉开差距。随着图像的分类类别的概率分数的上升，MSG-CAM逐渐显示出优势。在图像的分类类别的概率分数$\geq 99.99$时，即当图像分类神经模型对这组图像中的分类类别有很高的置信度时，MSG-CAM在AUC(overall)有着明显领先。这表明，当图像分类神经网络接近完美的学习到相关类别信息时，MSG-CAM能准确反映这种情况。
+
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch3/IDCurve.pdf}
+	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
+	\label{fig:IDCurve}
+\end{figure}
+
+
+\begin{table}
+	\renewcommand{\arraystretch}{1.5}
+	\centering
+	\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
+	\wuhao
+	% \begin{threeparttable}
+		\begin{tabularx}{\textwidth}{XXXXXXXX}%四个c代表该表一共四列，内容全部居中
+			\toprule[1.5pt]
+			AUC&GradCAM&GradCAM++&XGradCAM&ScoreCAM&GroupCAM&CAMERAS&\pmb{MSGCAM} \\
+			\toprule[1.5pt]%第二道横线 
+			Insertion&53.19&51.57&52.57&\pmb{55.10}&54.61&44.10&54.52 \\
+			
+			Deletion&11.52&12.16&11.53&11.43&11.21&\pmb{8.01}&9.78 \\
+			
+			Over-all&41.67&39.41&41.04&43.67&43.40&36.09&\pmb{44.74}\\
+			\bottomrule[1.5pt]%第三道横线
+		\end{tabularx}
+	\end{table}
+	
+	\begin{table}
+		\renewcommand{\arraystretch}{1.5}
+		\centering
+		\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
+		\wuhao
+		\begin{tabular}{ccccccc} %需要10列
+			\toprule[1.5pt] %添加表格头部粗线
+			\multicolumn{2}{c}{\multirow{2}{*}{Method}}& \multicolumn{2}{c}{PASCAL VOC test}&&\multicolumn{2}{c}{COCO 2014 validation}\\
+			\multicolumn{2}{c}{}&&Mean Accuracy($\%$)&&Mean Accuracy($\%$)&\\  %有n个&，就表示该行有n+1列
+			\toprule[1.5pt] %绘制一条水平横线
+			\multicolumn{2}{c}{Grad-CAM}&   &83.04&    &55.50&    \\   % 占两列，列名为A；后面陆续跟着数字
+			\multicolumn{2}{c}{Grad-CAM++}&   &83.21&    &52.91&   \\
+			\multicolumn{2}{c}{XGrad-CAM}&   &86.70&    &55.93&   \\
+			\multicolumn{2}{c}{Score-CAM}&   &73.92&   &51.20&   \\
+			\multicolumn{2}{c}{Group-CAM}&   &82.41&  &54.14&   \\
+			\multicolumn{2}{c}{CAMERAS}&   &87.16&    &55.40&   \\
+			\multicolumn{2}{c}{\pmb{MSG-CAM}}&   &\pmb{87.24}&   &\pmb{56.62}&   \\
+			\bottomrule[1.5pt] %添加表格底部粗线
+		\end{tabular}
+		\label{point}
+	\end{table}
+	
+	\begin{figure*}[htbp]
+		\centering
+		\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+		\subfigure[Insertion score divides into segments]{
+			\includegraphics[width=6cm]{fig/ch3/insertion.png}
+		}
+		\subfigure[deletion score divides into segments]{
+			\includegraphics[width=6cm]{fig/ch3/deletion.png}
+		}
+		\subfigure[over-all score divides into segments]{
+			\includegraphics[width=6cm]{fig/ch3/overall.png}
+		}
+		% \quad
+		\label{IDO}
+	\end{figure*}
+	
+	
+	
+	\subsection{定点游戏实验}
+	定点游戏（pointing game）\textsuperscript{\cite{zhang2018top}}实验对于给定显著图解释方法的空间选择性能够给出比较客观的评估结果。所谓空间选择性就是定点游戏要求图像分类神经网络对给定类别在输入图片中指出其所在位置，这对显著图解释方法提出了挑战，方法生成的显著图必须要准确反映给定类别在输入图片的具体位置。定点游戏的具体操作是从针对一个指定类别生成的显著图中找到值最大的那个点并记录它的坐标，如果该坐标位于该类别对象的预先人工标注的边界框内部，则记录一次击中（hit）,否则就是没有击中（miss）。定点游戏的量化评价指标即是显著图解释方法在给定数据集上对输入图片中所有类别的击中准确率，具体计算公式如下：
+	\begin{equation}
+		Acc=\frac{\#hits}{\#hits+\#misses}
+		\label{eq:point}
+	\end{equation}
+	在式\ref{eq:point}中，$\#hits$表示数据集中所有显著图的最大值点落在标注框中的个数，$\#misses$则表示数据集中所有显著图的最大值点落在标注框外的个数。在只计算最大值空间选择性的定点游戏当中，$\#hits+\#misses$就等于数据集中所有图片标注框的个数。
+	
+	为了更加精确的反映显著图的空间选择性，本节实验当中摈弃了只计算最大值点所在坐标的做法，转而计算显著图中里面从大到小的前100个点的坐标，这可以排除偶发性的噪声影响。最终的性能指标是对一个数据集中每个类别的$Acc$取平均。在本次实验中，我们使用的是VGG19模型，且分别在PASCAL VOC测试集和COCO 2014验证集上进行了微调训练。如表\ref{point}所示，我们的方法在两个数据集上都处于领先地位，这表明我们的方法比其他基于类激活映射图的方法更能反映图像分类神经网络的空间选择性。
+	
+	\subsection{合理性检验}
+	部分基于反向传播的显著图方法对模型参数并不敏感，这意味不管图像分类模型有没有经过训练，它们都能够给出相似的结果，这显然是违背显著图解释的初衷。所以，能否通过合理性检验是衡量显著图解释方法是否具备可解释性的标准。具体而言，本节~\cite{zhang2018top}根据中的实验方法对经过预训练的VGG19采用级联随机化（cascade randomization）和独立随机化（independent randomization）。级联随机化是从靠近模型的输出端开始，逐渐将卷积层的参数随机化，直至将所有卷积层的参数随机化。 独立随机化也是从靠近模型的输出端开始，每次仅将单独的一层卷积层参数随机化，其他卷积层不变。
+	
+	图\ref{fig:sanitycheck}中展示了MSG-CAM在单一图片下分别进行级联随机化和独立随机化的结果示意图，图中Conv34表示的是将VGG19的第34层卷积层经过独立随机化和级联随机化后的显著图生成结果，其他的Conv32等以此类推。可以看出无论是级联随机化还是独立随机化，本章提出的MSG-CAM生成的显著图均受到了明显影响，表面MSG-CAM是受到图像分类神经网络训练参数影响的，能够通过合理性检验。
+	
+	\begin{figure}[h]
+		\centering 
+		\includegraphics[width=15cm]{fig/ch3/sanityCheck.pdf}
+		\bicaption[\xiaosi MSG-CAM合理性检验]{\wuhao MSG-CAM合理性检验示意图}{\wuhao Sanity check of MSG-CAM}
+		\label{fig:sanitycheck}
+	\end{figure}
+	
+	
+	\subsection{图}
+	下面给出图片示例：
+	
+	%调整图片与上方文字之间的间距
+	%\vspace{-0.1cm}
+	
+	\begin{figure}[h]
+		\centering 
+		\includegraphics[width=10cm]{chapters/31}
+		\bicaption[\xiaosi 不同缩放系数v的缩放效果]{\wuhao 不同缩放系数v的缩放结果}{\wuhao Scaling results with different scaling coefficients ν}
+		\label{fig:3.1}
+	\end{figure}
+	
+	%调整图片与下方文字之间的间距
+	%\vspace{-0.35cm}
+	
+	图片标题与图片之间的间距使用默认设置即可，与上下文的间距由于LATEX动态排版特性，需要大家手动调整。
+	
+	。
+	
+	。
+	
+	。
+	
+	。
+	
+	。
+	
+	。
+	
+	。
+	
+	。
+	
+	
+	
+	下图是多子图示例：
+	%\vspace{-1cm}
+	
+	
+	
+	\begin{figure}[h]
+		\centering
+		\subfigure[]{
+			\label{fig:DE_J}
+			\includegraphics[width=12cm]{chapters/DE_J.pdf}}
+		\subfigure[]{
+			\label{fig:DE_CF}
+			\includegraphics[width=12cm]{chapters/DE_CF.pdf}}   
+		\bicaption[\xiaosi 理论效率与$\gamma$和$\varphi$的关系。]{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}{\wuhao Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
+		
+		%	\caption{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
+		%%	\raggedright
+		%	\wuhao Fig. 3-2 Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.
+	\end{figure}
+	
+	\vspace{-0.5cm}
+	
+	\subsection{表}
+	
+	表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
+	
+	\vspace{0.1cm}
+	
+	\begin{table}[h]
+		\renewcommand{\arraystretch}{1.5}
+		\centering
+		\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
+		\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+			\toprule
+			\makecell[c]{\songti\wuhao 电流类型}&\makecell[c]{\songti\wuhao A}&\makecell[c]{\songti\wuhao B}&\makecell[c]{\songti\wuhao C}\\
+			\hline
+			\makecell[c]{\wuhao aaa}&\makecell[c]{\wuhao aa1}&\makecell[c]{\wuhao bb1}&\makecell[c]{\wuhao cc1}\\
+			\bottomrule
+		\end{tabular}
+		\label{tab:3.1} 	
+	\end{table}
+	
+	表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
+	
+	\vspace{-0.1cm}
+	
+	\begin{table*}[h]
+		\renewcommand{\arraystretch}{1.5}
+		\bicaption[\xiaosi 高效率功放性能对比]{\wuhao 高效率功放性能对比}{\wuhao High-effiency power amplifier performance comparison}
+		\label{tab_1}
+		\centering
+		\wuhao
+		\begin{tabular}{c c c c c }
+			\hline
+			{\textbf{带宽}(GHz)}&{\textbf{功率}(dBm)}&{\textbf{效率}(\%)}&{\textbf{线性度}(dBc)}&{\textbf{信号带宽}(MHz)}\\
+			\hline
+			1.4--2.6&32--34&30--40 (DE)&-25 -- -30 (ACLR)&5\\
+			\hline
+			\multirow{2}{*}{2.1--2.7}&39&45 (DE) @ 2.14 GHz&--31 (ACLR)&\multirow{2}{*}{5}\\\cline{3-4}
+			&(average)&40 (DE) @ 2.655 GHz&--30 (ACLR)&\\
+			\hline
+			3.5&38.1&59 (PAE)&30 (C/I)&5\\
+			\hline
+			\multirow{2}{*}{1.6--2.6}&36.0--38.5&45--60 (PAE)&30 (C/I)&5\\\cline{2-5}
+			&35.3--37.5&40--55 (PAE)&--30 (ACLR)&20\\
+			\hline
+		\end{tabular}
+	\end{table*}
+	
+	
+	\section{公式格式}
+	
+	\begin{equation}
+		\left\{ \begin{aligned}
+			0.794 \le \zeta  \le 1 ~~~~~~~~~~~\\
+			0.631 \le \gamma  = \frac{{0.631}}{{{\zeta ^2}}} \le 1~~~~~~ \\
+			- \frac{1}{{2\gamma }} \le \delta  \le \frac{1}{{2\gamma }}~~~~~~~~~~~ \\
+			{Z_{c,low,f}} = 2{R_{opt}}(\gamma  + j\delta )~~~~~\\
+			{Z_{c,2f}} = {Z_{c,low,2f}} =  - j\frac{{3\pi }}{4}\gamma \delta {R_{opt}}
+		\end{aligned} \right.
+		\label{eq:3.1}
+	\end{equation}
+	
+	\begin{equation}
+		\begin{aligned}
+			v(\theta ) = V_{DD}\cdot(1 - \alpha cos(\theta  + \varphi ) + \beta cos(3\theta  + 3\varphi ))\\
+			\cdot(1 - \gamma \sin (\theta  + \varphi )) ~~~~~- 1 \le \gamma  \le 1\
+		\end{aligned}
+		\label{eq:vd}
+	\end{equation}
+	
+	
+	
+	
+	\noindent
+	公式格式测试。${\mathbf{\Theta }} = \left\{ {{\theta _k}\left( n \right),\forall k,n} \right\}$
+	
+	\section{印制要求}
+	涉密学位论文的印刷、制作、传递、存档等，须符合国家、学校相关保密要求。学位论文一律左侧装订。
+	
+	中文摘要之前的前置部分（封面、中、英文题名页、独创性声明和使用授权书），采用单面印刷。
+	
+	从中文摘要开始，采用双面印刷。
+	
+	中文摘要及之后的前置部分，包括中文摘要、ABSTRACT、目录、图目录（如有）、表目录（如有）、主要符号表（如有）、缩略词表（如有），在双面印刷时，若某部分页数为奇数，则该部分最后一页单面印刷。例如：若“摘要”只有1页，则其页码是“Ⅰ”，第“Ⅰ”页纸的背面为空白（无页眉或页码）；“ABSTRACT”用新的一张纸印刷，页码从“Ⅱ”开始。
+	
+	从第1章第1页开始，至论文最后1页，所有页面均双面印刷。例如：若第1章的最后1页为第17页，则第2章的第1页在第17页的背面印刷，页码为“18”（页眉是“重庆邮电大学博士（硕士）学位论文”）。
+	
+	一次性双面打印整本学位论文技巧：除用于打印的版本外，电子版论文中一律不得出现空白页。论文打印建议使用PDF格式。为方便一次性双面打印，有时可在单面印刷的部分（如封面、中、英文题名页、独创性声明和使用授权书），或者双面打印只有1页的某部分内容（如摘要、ABSTRACT等）后插入1页空白页，该空白页不编排页眉页码；论文中出现的页码应前后连续，不得中断。
+	
+	
+	\section{本章小结}
+	本章介绍了……
