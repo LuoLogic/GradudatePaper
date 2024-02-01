@@ -153,19 +153,30 @@ $\boldsymbol{M}$是经由输入图片多尺寸上采样放大后从卷积层中�
 
 \subsection{实验硬件配置和软件环境}
 下面给出本章实验的硬件配置和实验环境相关信息，具体信息见表\ref{tab:en}。
-\begin{table}[h]
+
+\begin{table}
 	\renewcommand{\arraystretch}{1.5}
-	\centering
-	\bicaption[\xiaosi 实验环境和硬件配置]{\wuhao 实验环境和硬件配置}{\wuhao Experimental environment and hardware configuration}
-	\begin{tabular}{p{3cm}p{2.25cm}p{2.25cm}p{2.25cm}p{2.25cm}}
-		\toprule[1.5pt]
-		\makecell[c]{\songti\wuhao CPU}&\makecell[c]{\songti\wuhao GPU}&\makecell[c]{\songti\wuhao 操作系统}&\makecell[c]{\songti\wuhao Python版本}&\makecell[c]{\songti\wuhao PyTorch版本}\\
-		\hline
-		\makecell[c]{\wuhao Intel$^\circledR$ Xeon$^\circledR$\\ \wuhao W-2255 CPU\\ \wuhao@3.70GHz}&\makecell[c]{\wuhao NVIDIA \\ \wuhao RTX A5000}&\makecell[c]{ \wuhao  Ubuntu20.04}&\makecell[c]{\wuhao Python3.8}&\makecell[c]{\wuhao 1.10.1+cu113}\\
-		\bottomrule[1.5pt]
-	\end{tabular}
-	\label{tab:en} 	
+\centering
+\bicaption[\xiaosi 实验环境和硬件配置]{\wuhao 实验环境和硬件配置}{\wuhao Experimental environment and hardware configuration}
+
+	\begin{tabular}{p{4cm}p{8cm}} 
+\hline
+类型                  & \multicolumn{1}{c}{配置信息}      \\ 
+\hline
+\multirow{3}{*}{硬件} & CPU：10-core Intel$^\circledR$ Xeon$^\circledR$ W-2255 CPU                  \\
+& 内存：128GB 64-bit DDR4 3700MHz  \\
+& 显卡：NVIDIA RTX A5000 24GB      \\ 
+\hline
+\multirow{6}{*}{软件} & 操作系统：Ubuntu 20.04 LTS         \\
+& Python版本：Python3.8            \\
+& 深度学习框架：Pytorch 1.10.1         \\
+& 计算架构：CUDA 11.4                \\
+& 计算加速库：CUDNN 8.2.0             \\
+& AI性能：27.8 TFLOPS              \\
+\hline
+\end{tabular}
 \end{table}
+
 
 \subsection{数据集及其预处理和实验参数说明}
 在本章的实验当中，主要使用了三个数据集，下面是三个数据集的简要介绍：
@@ -206,18 +217,18 @@ COCO2014数据集（Common Objects in Context）是一个用于计算机视觉�
 	\centering
 	\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
 	\wuhao
-	% \begin{threeparttable}
-		\begin{tabularx}{\textwidth}{XXXXXXXX}%四个c代表该表一共四列，内容全部居中
-			\toprule[1.5pt]
-			AUC&GradCAM&GradCAM++&XGradCAM&ScoreCAM&GroupCAM&CAMERAS&\pmb{MSGCAM} \\
-			\toprule[1.5pt]%第二道横线 
-			Insertion&53.19&51.57&52.57&\pmb{55.10}&54.61&44.10&54.52 \\
-
-			Deletion&11.52&12.16&11.53&11.43&11.21&\pmb{8.01}&9.78 \\
-
-			Over-all&41.67&39.41&41.04&43.67&43.40&36.09&\pmb{44.74}\\
-			\bottomrule[1.5pt]%第三道横线
-		\end{tabularx}
+	\label{point}
+	\resizebox{\linewidth}{!}{
+		\begin{tabular}{llllllll} 
+			\toprule
+			AUC       & GradCAM & GradCAM++ & XGradCAM & ScoreCAM       & GroupCAM & CAMERAS       & MSGCAM          \\ 
+			\toprule
+			Insertion & 53.19   & 51.57     & 52.57    & \textbf{55.10} & 54.61    & 44.10         & 54.52           \\
+			Deletion  & 11.52   & 12.16     & 11.53    & 11.43          & 11.21    & \textbf{8.01} & 9.78            \\
+			Over-all  & 41.67   & 39.41     & 41.04    & 43.67          & 43.40    & 36.09         & \textbf{44.74}  \\
+			\bottomrule
+		\end{tabular}
+	}
 \end{table}
 
 \begin{table}
@@ -244,7 +255,7 @@ COCO2014数据集（Common Objects in Context）是一个用于计算机视觉�
 
 \begin{figure*}[htbp]
 	\centering
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	\bicaption[\xiaosi ]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
 	\subfigure[Insertion score divides into segments]{
 		\includegraphics[width=6cm]{fig/ch3/insertion.png}
 	}
@@ -281,153 +292,6 @@ COCO2014数据集（Common Objects in Context）是一个用于计算机视觉�
 	\bicaption[\xiaosi MSG-CAM合理性检验]{\wuhao MSG-CAM合理性检验示意图}{\wuhao Sanity check of MSG-CAM}
 	\label{fig:sanitycheck}
 \end{figure}
-
-
-\subsection{图}
-下面给出图片示例：
-
-%调整图片与上方文字之间的间距
-%\vspace{-0.1cm}
-
-\begin{figure}[h]
-		\centering 
-		\includegraphics[width=10cm]{chapters/31}
-	    \bicaption[\xiaosi 不同缩放系数v的缩放效果]{\wuhao 不同缩放系数v的缩放结果}{\wuhao Scaling results with different scaling coefficients ν}
-	   	 \label{fig:3.1}
-\end{figure}
-
-%调整图片与下方文字之间的间距
-%\vspace{-0.35cm}
-
-图片标题与图片之间的间距使用默认设置即可，与上下文的间距由于LATEX动态排版特性，需要大家手动调整。
-
-。
-
-。
-
-。
-
-。
-
-。
-
-。
-
-。
-
-。
-
-
-
-下图是多子图示例：
-%\vspace{-1cm}
-
-
-
-\begin{figure}[h]
-	\centering
-	\subfigure[]{
-		\label{fig:DE_J}
-		\includegraphics[width=12cm]{chapters/DE_J.pdf}}
-	\subfigure[]{
-		\label{fig:DE_CF}
-		\includegraphics[width=12cm]{chapters/DE_CF.pdf}}   
-\bicaption[\xiaosi 理论效率与$\gamma$和$\varphi$的关系。]{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}{\wuhao Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
-
-%	\caption{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
-%%	\raggedright
-%	\wuhao Fig. 3-2 Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.
-\end{figure}
-
-\vspace{-0.5cm}
-
-\subsection{表}
-
-表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
-
-\vspace{0.1cm}
-
-\begin{table}[h]
-	\renewcommand{\arraystretch}{1.5}
-	\centering
-	\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
-	\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
-		\toprule
-		\makecell[c]{\songti\wuhao 电流类型}&\makecell[c]{\songti\wuhao A}&\makecell[c]{\songti\wuhao B}&\makecell[c]{\songti\wuhao C}\\
-		\hline
-		\makecell[c]{\wuhao aaa}&\makecell[c]{\wuhao aa1}&\makecell[c]{\wuhao bb1}&\makecell[c]{\wuhao cc1}\\
-		\bottomrule
-	\end{tabular}
-   \label{tab:3.1} 	
-\end{table}
-
-表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
-
-\vspace{-0.1cm}
-
-\begin{table*}[h]
-	\renewcommand{\arraystretch}{1.5}
-	\bicaption[\xiaosi 高效率功放性能对比]{\wuhao 高效率功放性能对比}{\wuhao High-effiency power amplifier performance comparison}
-	\label{tab_1}
-	\centering
-	\wuhao
-	\begin{tabular}{c c c c c }
-		\hline
-		{\textbf{带宽}(GHz)}&{\textbf{功率}(dBm)}&{\textbf{效率}(\%)}&{\textbf{线性度}(dBc)}&{\textbf{信号带宽}(MHz)}\\
-		\hline
-		1.4--2.6&32--34&30--40 (DE)&-25 -- -30 (ACLR)&5\\
-		\hline
-		\multirow{2}{*}{2.1--2.7}&39&45 (DE) @ 2.14 GHz&--31 (ACLR)&\multirow{2}{*}{5}\\\cline{3-4}
-		&(average)&40 (DE) @ 2.655 GHz&--30 (ACLR)&\\
-		\hline
-		3.5&38.1&59 (PAE)&30 (C/I)&5\\
-		\hline
-		\multirow{2}{*}{1.6--2.6}&36.0--38.5&45--60 (PAE)&30 (C/I)&5\\\cline{2-5}
-		&35.3--37.5&40--55 (PAE)&--30 (ACLR)&20\\
-		\hline
-	\end{tabular}
-\end{table*}
-
-
-\section{公式格式}
-
-\begin{equation}
-\left\{ \begin{aligned}
-0.794 \le \zeta  \le 1 ~~~~~~~~~~~\\
-0.631 \le \gamma  = \frac{{0.631}}{{{\zeta ^2}}} \le 1~~~~~~ \\
-- \frac{1}{{2\gamma }} \le \delta  \le \frac{1}{{2\gamma }}~~~~~~~~~~~ \\
-{Z_{c,low,f}} = 2{R_{opt}}(\gamma  + j\delta )~~~~~\\
-{Z_{c,2f}} = {Z_{c,low,2f}} =  - j\frac{{3\pi }}{4}\gamma \delta {R_{opt}}
-\end{aligned} \right.
-\label{eq:3.1}
-\end{equation}
-
-\begin{equation}
-\begin{aligned}
-v(\theta ) = V_{DD}\cdot(1 - \alpha cos(\theta  + \varphi ) + \beta cos(3\theta  + 3\varphi ))\\
-\cdot(1 - \gamma \sin (\theta  + \varphi )) ~~~~~- 1 \le \gamma  \le 1\
-\end{aligned}
-\label{eq:vd}
-\end{equation}
-
-
-
-
-\noindent
-公式格式测试。${\mathbf{\Theta }} = \left\{ {{\theta _k}\left( n \right),\forall k,n} \right\}$
-
-\section{印制要求}
-涉密学位论文的印刷、制作、传递、存档等，须符合国家、学校相关保密要求。学位论文一律左侧装订。
-
-中文摘要之前的前置部分（封面、中、英文题名页、独创性声明和使用授权书），采用单面印刷。
-
-从中文摘要开始，采用双面印刷。
-
-中文摘要及之后的前置部分，包括中文摘要、ABSTRACT、目录、图目录（如有）、表目录（如有）、主要符号表（如有）、缩略词表（如有），在双面印刷时，若某部分页数为奇数，则该部分最后一页单面印刷。例如：若“摘要”只有1页，则其页码是“Ⅰ”，第“Ⅰ”页纸的背面为空白（无页眉或页码）；“ABSTRACT”用新的一张纸印刷，页码从“Ⅱ”开始。
-
-从第1章第1页开始，至论文最后1页，所有页面均双面印刷。例如：若第1章的最后1页为第17页，则第2章的第1页在第17页的背面印刷，页码为“18”（页眉是“重庆邮电大学博士（硕士）学位论文”）。
-
-一次性双面打印整本学位论文技巧：除用于打印的版本外，电子版论文中一律不得出现空白页。论文打印建议使用PDF格式。为方便一次性双面打印，有时可在单面印刷的部分（如封面、中、英文题名页、独创性声明和使用授权书），或者双面打印只有1页的某部分内容（如摘要、ABSTRACT等）后插入1页空白页，该空白页不编排页眉页码；论文中出现的页码应前后连续，不得中断。
 
 
 \section{本章小结}

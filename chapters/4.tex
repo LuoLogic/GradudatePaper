@@ -29,6 +29,14 @@
 \section{一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法}
 为了解决当前可视化算法存在的分辨率低，特征模糊，噪声多的问题，我们的方法在输入图片上应用了滑动窗口，通过采集并融合不同窗口图片的可视化信息，让可视化算法加强对输入图片中的局部信息的感知。
 
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch4/pipeline.png}
+	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
+	\label{fig:pipeline}
+\end{figure}
+
 \subsection{获取窗口图片集合}
 设定原始输入图片$I_0 \in \mathbb{R}^{3\times H_0 \times W_0}$，使用一个二维滑动窗口函数$\psi(I, start, h, w, stride)$来从输入图片$I_0$中提取窗口图片，函数$\psi(I, start, h, w, stride)$中$I$就是函数所应用的输入图片，$start$表示滑动窗口在二维坐标系统的起点，一般设定在输入图片的左上角位置，$h$和$w$表示窗口像素尺寸且窗口尺寸应该小于输入图片尺寸，$stride$表示每次滑动窗口移动的像素个数，窗口从左上角起点开始移动，只能在图片区域内移动，即滑动窗口应该向右或者向左移动。每次移动则将窗口内的图片区域进行复制并保存，移动完毕后即可得到关于窗口图片的集合，单张窗口图片的获取的公式如下：
 \begin{equation}
@@ -109,60 +117,12 @@
 \begin{equation}
 	S_c=\frac{S_c^{\prime\prime}-min(S_c^{\prime\prime})}{max(S_c^{\prime\prime})-min(S_c^{\prime\prime})}
 \end{equation}
-
-
-\subsection{掩膜优化}
-$\boldsymbol{M}$是经由输入图片多尺寸上采样放大后从卷积层中提取的特征图和梯度矩阵结合而得到的，相比单一原始输入图片得到掩膜（比如Score-CAM\textsuperscript{\cite{wang2020score}2}），$\boldsymbol{M}$包含更丰富的类别特征信息，但是目前得到$\boldsymbol{M}$仍然不能直接当作掩膜来扰动输入图片，它还有两个明显的缺点。第一点是$\boldsymbol{M}$的尺寸是$[1\times K \times H_0\times W_0]$，其中$K$是卷积层$l$输出的特征图的通道数量，一般我们取最后一层卷积层作为$l$，因此$K$的值将会是数百至上千，显然这样掩膜的数量太多了，若像Score-CAM\textsuperscript{\cite{wang2020score}3}一样逐个将掩膜去扰动原始输入图片得到权值，那样将会极为耗时。第二个缺点$\boldsymbol{M}$就是使用全局平均池化后的梯度作为特征图的权重，由于ReLU函数的零梯度问题\textsuperscript{\cite{zhang2021novel}}，这意味着$\boldsymbol{M}$显然会有噪声。因此，为了使$\boldsymbol{M}$成为合格的掩膜，需要让它变得更加纯净。
-
-对于第一个缺陷，本节的解决办法是将$\boldsymbol{M}$中的$K$张掩膜平分为$B$个组，分类依据是它们的相邻关系，接着将每个组内的所有掩膜相加合并为一个掩膜，这个相加合并过程可由以下的公式计算得出：
-\begin{equation}
-	M_r=ReLU(\sum_{k=r\times g}^{(r+1)\times g-1}{M^k})
-	\label{eq:Mr}
-\end{equation}
-公式\ref{eq:Mr}中$g$是每个组中的特征图的数量且 $g=K/B$，$r$的取值范围是$\{0,1,2,\dots,B-1\}$，即合并完成后一共有$B$张掩膜，$M_r$是第$r$组中合并完成后的掩膜，$M^k$是$\boldsymbol{M}$中第$k$个通道的特征图。
-
-对于第二个缺陷，我们设计了一个去噪函数$f(m_{ij},\theta)$，该函数中$m_{ij}$是掩膜$M_r$中第$i$行第$j$列的像素值，$\theta$是一个百分比值。具体的去噪计算结果由以下公式计算得出：
-\begin{equation}
-	f(m_{ij},\theta)= \begin{cases}
-		\ m_{ij}, & \rm if \enspace \it m_{ij}>p(M_r,\theta) ; \\
-		\ 0, & \rm otherwise .\\
-	\end{cases}
-	\label{eq:denoise}
-\end{equation}
-公式\ref{eq:denoise}中$p(M_r,\theta)$表示$M_r$的所有像素值从大到小处于$\theta$百分比的值，比如有100个像素值，每个像素值都是1到100中的一个整数取值且取值唯一，此时$\theta =70$，那么$p(M_r,\theta)=70$。\refeq{eq:denoise}公式的作用就是将掩膜$M_r$中百分比前$\theta$大的像素值保留，小于$p(M_r,\theta)$的像素值置为0。经过去噪操作后可以得到更加纯净的掩膜。
-
-到目前为止，还剩下最后一个操作即可得到最终的掩膜。将$M_r$中的所有像素值进行最大最小归一化，使其像素值区间位于$[0,1]$，这样方便将掩膜直接和输入图片相乘进行扰动操作。具体计算公式如下：
-\begin{equation}
-	M^{\prime}_r=\frac{M_r-min(M_r)}{max(M_r)-min(M_r)}\label{e_minmax}
-\end{equation}
-最后，掩膜$M^{\prime}_r$有这和原始输入图片$I_0$一致的分辨率且掩膜的像素值和$I_0$中的像素值一一对应。
-
-\subsection{生成显著图}
-如果显著性方法确实识别出了对模型预测有重要意义的像素，那么这一点就应该反映在重建图像的模型输出当中\textsuperscript{\cite{kapishnikov2019xrai}}。将$M^{\prime}_r$作为掩膜来扰动原始输入图片$I_0$，其背后的原理是从原始输入图像中保留掩膜中获得的关于类别$c$的特征信息，让图像分类模型来判断保留的这部分信息的重要性，判断依据就是图像分类模型对扰动后的图片关于类别$c$的输出概率分数。但是，如果直接将掩膜和原始输入图像相乘进行扰动，那么扰动后的图像中的被掩盖区域和被凸显的区域之间的边界会过于明显锐利，从而对图像分类神经网络造成对抗效果\textsuperscript{\cite{dabkowski2017real}}。
-
-为了遇到避免上述的问题，高斯模糊函数被引入到了接下来的改进方法中。具体方法是将扰动区域即被掩膜遮盖的区域用高斯模糊后的原始输入图片的对应区域进行替代，这样可以使得凸显的图片区域和被扰动的图片区域之间的边界更加平滑，从而像真实图片，不易让图像分类神经网络产生异常的输出。对于单一掩膜$M^{\prime}_r$，这个扰动模式可以由以下的公式计算得出：
-\begin{equation}
-	I_r=I_0\odot M^{\prime}_r+I^{\prime}_0\odot (1-M^{\prime}_r)
-	\label{eq:Ir}
-\end{equation}
-公式\ref{eq:Ir}中，$I^{\prime}_0$是将原始输入图片$I_0$高斯模糊后的得到的，$I^{\prime}_0$作为一张基础图片送入图像分类模型$\mathcal{F}$当中，当然得到其关于类别$c$的输出结果$\mathcal{F}_c(I^{\prime}_0)$是一个非常低的值且趋近于0。具体的高斯模糊函数是$guassian\_blur2d(input,kernel\_size,sigma)$，在本章中，参照Group-CAM\textsuperscript{\cite{zhang2021novel}}的工作，设置高斯模糊的参数$kernel\_size=51$和$sigma=50$。 $1-M^{\prime}_r$表示$M^{\prime}_r$中每个像素值都作为减数被1相减，作用是将掩膜中关于类别$c$的特征信息进行凸显。
-
-参考RISE\textsuperscript{\cite{petsiuk2018rise}}中的方法，每张掩膜$M_r$的权重$\alpha_r$可以由扰动后的$I_r$输入到图像分类模型$\mathcal{F}$中得到。$\mathcal{F}_c(I_r)$则是该权重，其表示模型对显著图区域中类别$c$的特征信息的感兴趣程度。具体计算公式由以下式子给出：
-\begin{equation}
-	\alpha_r=\mathcal{F}_c(I_r)-\mathcal{F}_c(I^{\prime}_0)
-\end{equation}
-最终的显著图即将所有$M_r$的权重$\alpha_r$和其本身相乘，并经过ReLU函数后得到，ReLU函数的作用是保留显著图中的正值，即模型关于类别$c$感兴趣的像素区域。具体式子如下表示：
-\begin{equation}
-	L_{MSG-CAM}=ReLU(\sum_{r}\alpha_r M_r)
-\end{equation}
-
-
-
+ 
 
 \section{实验与分析}
 
 \subsection{实验硬件配置和软件环境}
-下面给出本章实验的硬件配置和实验环境相关信息，具体信息见表\ref{tab:en}。
+下面给出本章实验的硬件配置和实验环境相关信息，具体信息见表\ref{tab:en1}。
 \begin{table}[h]
 	\renewcommand{\arraystretch}{1.5}
 	\centering
@@ -174,271 +134,167 @@ $\boldsymbol{M}$是经由输入图片多尺寸上采样放大后从卷积层中�
 		\makecell[c]{\wuhao Intel$^\circledR$ Xeon$^\circledR$\\ \wuhao W-2255 CPU\\ \wuhao@3.70GHz}&\makecell[c]{\wuhao NVIDIA \\ \wuhao RTX A5000}&\makecell[c]{ \wuhao  Ubuntu20.04}&\makecell[c]{\wuhao Python3.8}&\makecell[c]{\wuhao 1.10.1+cu113}\\
 		\bottomrule[1.5pt]
 	\end{tabular}
-	\label{tab:en} 	
+	\label{tab:en1} 	
 \end{table}
 
-\subsection{数据集及其预处理和实验参数说明}
-在本章的实验当中，主要使用了三个数据集，下面是三个数据集的简要介绍：
+\subsection{数据集说明和数据集处理}
+在本章的实验当中，主要使用了两个数据集，下面是三个数据集的简要介绍：
 1. ILSVRC 2012数据集
 ILSVRC 2012（ImageNet Large Scale Visual Recognition Challenge 2012）是一个用于视觉对象识别和定位的大规模数据集和竞赛。该数据集包含超过120万张标注图片，涵盖1000个不同类别的物体和场景。ILSVRC 2012竞赛旨在推动计算机视觉领域的发展，参与者需要开发能够识别图像中物体类别的算法，并对物体进行定位。该竞赛对于深度学习和卷积神经网络等技术的发展起到了重要推动作用，成为了评估图像识别算法性能的重要基准。ILSVRC 2012数据集的发布和竞赛对于推动计算机视觉领域的发展产生了深远影响。
 
-2. PASCAL VOC数据集
-PASCAL VOC（Visual Object Classes）数据集是一个常用的计算机视觉数据集，用于目标检测、图像分割和场景分类等任务。该数据集最初由牛津大学的计算机视觉研究组创建，包含了20个常见的物体类别，如人、狗、猫、飞机等。数据集中的图像来自于自然场景和网络图像，每个图像都标注了包含的物体类别和位置信息。PASCAL VOC数据集被广泛应用于评估目标检测和图像分割算法的性能，是计算机视觉领域中的重要基准数据集之一。同时，PASCAL VOC数据集也被用于举办国际性的计算机视觉竞赛，吸引了全球的研究者和工程师参与。通过使用PASCAL VOC数据集，研究人员可以开发和评估各种视觉任务的算法，推动计算机视觉技术的发展。
+2. ImageNet-Segmentation数据集
+ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014imagenet}}发布的，该论文提出了一种自动填充该数据集的方法，通过像素级的对象-背景分割来丰富图像的注释信息。研究者们通过逐步利用已经分割的图像来引导新图像的分割过程，同时结合类别级别的分割，以实现高质量的分割结果。他们还通过实验证明了该方法在iCoseg数据集上取得了最先进的结果，并且成功地将该方法应用于ImageNet数据集，共包含约50万张图像。最终，他们通过人工标注的方式对445个类别的4276张图像进行了分割，并将这些分割结果整理为ImageNet-Segmentation数据集并发布。
 
-3. COCO2014数据集
-COCO2014数据集（Common Objects in Context）是一个用于计算机视觉任务的大型数据集，包含超过200,000张图像和相关的注释信息。这些图像涵盖了80个不同类别的物体，并且每张图像都有多个物体的标注，这使得数据集在目标检测、图像分割和物体识别等任务中非常有用。COCO2014数据集的引入为计算机视觉领域的研究和发展提供了重要的资源，成为了许多视觉任务的标准基准。研究人员和开发者可以利用该数据集进行模型训练、算法评估和性能比较，从而推动计算机视觉技术的进步。COCO2014数据集的广泛应用促进了目标检测、图像分割和物体识别等领域的发展，为相关领域的研究和应用提供了有力支持。
+在本章扰动实验中使用的是ILSVRC 2012验证集，包含50000张图片，并且将该验证集中的图片尺寸调整为(3$\times$224$\times$224)，其中$3$是表示RGB颜色通道数量，像素值进行归一化调整，调整后的像素值范围是[0, 1]，最后使用Imagenet数据集的均值[0.229, 0.224, 0.225]和方差[0.485, 0.456, 0.406]对所有图片像素值进行标准化处理。在图像分割实验当中使用了ImageNet-Segmentation数据集，包含4276张图片，总共445个类别。
+\subsection{作为对照的显著图方法}
+为了验证本章提出的增强算法，一共选用了5种显著图解释方法来作为对照，本章提出的增强算法将应用在这5种显著图解释方法上来验证增强算法的有效性和可靠性。下面是这5种显著图解释方法的简短介绍和在实验当中的应用说明。
 
-在本章当中插入与删除实验中使用的是ILSVRC 2012验证集，包含50000张图片，并且将该验证集中的图片尺寸调整为(3$\times$224$\times$224)，其中$3$是表示RGB颜色通道数量，像素值进行归一化调整，调整后的像素值范围是[0, 1]，最后使用Imagenet数据集的均值[0.229, 0.224, 0.225]和方差[0.485, 0.456, 0.406]对所有图片像素值进行标准化处理。在定点游戏实验中，使用了两个数据集，分别是PASCAL VOC数据集中的测试集，包含4952张图片，和COCO 2014数据集的验证集，包含50000张图片。用于本章实验的图像分类神经网络模型是torchvision提供的预训练模型VGG19\textsuperscript{\cite{simonyan2014very}}，它是基于卷积神经网络架构的。如果没有特别说明，本章提出的方法MSG-CAM的默认设置参数是$B=32$，$\theta=70$。所有方法生成的最终显著图默认都上采样至224$\times$224的分辨率。
+1. Grad-CAM
+Grad-CAM (Gradient-weighted Class Activation Mapping) 是一种用于解释深度学习模型预测的技术，它可以生成显著图帮助理解模型是如何做出特定的预测的。Grad-CAM 是由Selvaraju等人在2017年提出的，它结合了梯度和全局平均池化的方法，能够生成图像中与模型预测结果相关的区域。在深度学习模型中，我们往往无法直观地理解模型是如何做出预测的，特别是在图像分类任务中。Grad-CAM 技术可以帮助我们理解模型是如何关注图像中的哪些区域来做出预测的。它可以生成热力图，显示出模型对于不同区域的关注程度，从而帮助我们理解模型的决策过程。
+
+Grad-CAM 技术的核心思想是结合梯度和全局平均池化来生成热力图。在传统的深度学习模型中，我们可以通过计算输入图像对于输出类别的梯度来理解模型的关注点。然而，这种方法只能提供整体的梯度信息，无法给出具体的区域信息。而全局平均池化可以将特征图的每个通道的特征值求平均，得到一个全局的特征向量。Grad-CAM 将这两种方法结合起来，通过对特征图的每个通道的梯度和全局平均池化的特征向量进行加权求和，生成与模型预测结果相关的区域。
+
+具体来说，Grad-CAM 技术的公式如下：
+\begin{equation}
+L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{ij})
+\end{equation}
+其中，$L_{Grad-CAM}^{c}$表示生成的显著图，$c$表示输出类别的索引，$y^c$表示模型对于类别$c$的得分，$A_{ij}$表示特征图的第i行第j列的特征值，$\frac{\partial y^c}{\partial A_{ij}}$表示模型对于类别$c$的得分对于特征图的第i行第j列的梯度。
+
+在本章的实验中，当Grad-CAM是应用在基于卷积神经网络的VGG19模型上时，生成特征图的卷积层是其最后一层卷积层，当Grad-CAM应用于基于Transformer结构的图像分类神经网络ViT时，是将最后一层注意力层的【CLS】标记视作指定的特征图，在反向传播过程中也是考虑该【CLS】标记维度上的梯度。
+
+
+2. LRP
+
+3. Partial LRP
+
+4. Transformer attribution
+
+5. Grad-CAM++
+
+5. Score-CAM
+
+
+\subsection{增强方法相关参数}
+在本章实验当中，如无特别说明，所有输入图片的尺寸都是$3\times224\times224$，滑动窗口相关参数是：$start=(0,0), h=96, w=96, stride=32$，$start$是输入图片的左上角的像素作为起点 ，也是整个二维坐标系统的起点。低通滤波器的参数设置：$D_0=35$。
+
+
 \subsection{定性评估}
 
-\subsection{插入（insertion）和删除（deletion）实验}
-插入（insertion）和删除（deletion）实验首次在RISE\textsuperscript{\cite{petsiuk2018rise}}实验中提出。插入实验背后所反映的原理是当我们按照显著图给出的像素重要程度优先级开始在原图的对应位置逐渐插入重要的像素直至完全插入所有像素，在此过程中记录每次插入操作时模型对指定类别给出的可能性概率分数。插入实验可以衡量显著图对像素重要性的排序是否与模型实际决策时关注的像素重要性排序一致。与之相反的是，删除实验则是按照显著图中给出的像素重要程度优先级逐渐从原输入图片中抹去对应的像素信息。和插入实验一样，删除实验也要求记录每次删除操作后模型对感兴趣类别给出的可能性分数。删除实验可以直观的呈现出缺失重要特征的像素信息后模型对感兴趣类别的置信程度下降情况。
+\subsection{扰动实验}
+优秀的显著图解释算法要能准确找到神经网络做出决策的关键特征，并且在生成的显著图中对每个像素赋予它与其对决策贡献相匹配的数值。扰动实验就是在这一标准上比较不同显著图解释算法的性能。我们分别进行正负扰动实验，正负实验测试采用两阶段设置。首先，使用预先训练好的网络提取 ImageNet验证集的可视化图像。其次，逐渐屏蔽掉输入图像的像素，并测量网络的平均top-1准确率。在正扰动实验中，像素从相关度最高的像素被屏蔽到最低的像素，而在负扰动中，像素从最低的像素被屏蔽到最高的像素。在正向扰动中，我们会看到性能急剧下降，这表明被遮挡的像素对分类得分很重要。在负扰动实验情况下，一个好的解释可以保持模型的准确性，同时去除与类别无关的像素。在这两种情况下，我们都测量了去除10\%-90\%像素时的曲线下面积（AUC）。这两项实验都可应用于图像分类模型预测结果类（Predicted）和真实标注类（Target）。在后一种情况下，特定类别的方法有望获得更好的性能，而与类别无关的方法则会在两种测试中表现出相似的性能。
 
-具体而言，对于插入实验，我们将原输入图片高斯模糊化后作为画布，随后每次迭代过程中，我们按照显著图给出的像素优先级逐渐向画布中对应的位置中引入原输入图片的像素，每次迭代过程中记录模型对引入像素后的的图片关于指定类别的可能性概率分数。为了更加精确的反映显著图的像素优先级，我们每次迭代只引入约0.89\%(224$\times$2)的像素。和插入实验相对比，删除实验每次迭代将原输入图片中的像素逐渐替代为画布上的像素，直到输入图片被完全替换为画布为止。删除实验每次迭代仍然是变更约0.89\%的在原图中的像素。需
+正负扰动实验和插入删除实验本质是一致的，都是根据显著图给出的像素权值将输入图片中的像素删除来记录得到相关类别索引的概率分数的变化。在正负扰动实验当中，也可以用$AUC(总体)$来综合评价扰动实验结果，它的计算方式是$AUC(总体)=AUC(负扰动)-AUC(正扰动)$。从表1中可以看出，我们的增强算法在overall指标上都取得明显提升，其中提升最为显著的是ViT模型的可视化算法GradCAM和LRP，这是因为他们对ViT的可视化能力很差，无法定位关键特征，经过我们的方法增强后，初步具有定位关键特征的能力。这表明我们的方法可以帮助这些可视化算法找到神经网络感兴趣的关键特征，这在不同的模型上都是成立的。
 
-要特别说明的是，我们引入高斯模糊后的原输入图片作为画布是为了避免引入像素或者删除像素时产生过于锐利的边界，从而更加接近真实图片，避免产生对抗攻击的样本。此外，每次迭代记录的可能性分数都是经过softmax函数进行归一化后的数据。得到插入实验和删除实验每次迭代获得的分数后，我们使用概率分数随插入或者删除次数的曲线的曲线下面积（Area Under Curve)作为的作为量化指标。为了总体衡量插入实验和删除实验的优劣，我们使用总体（over-all）分数。按照上面关于插入实验和删除实验的描述，AUC(insertion)越高表明显著图越准确，同理，AUC(deletion)越低越好。因此，overall分数计算方式是AUC(insertion)-AUC(deletion)。图\ref{fig:IDCurve}展示了Grad-CAM、Score-CAM、Group-CAM和MSG-CAM为所选的4幅代表性图像生成了显著图以及相应的插入和删除曲线。对于删除曲线，更好的显著图解释方法给出的显著性图应尽可能快地下降，插入曲线与删除曲线正好相反。从图中可以看出本文提出的MSG-CAM在视觉解释效果以及插入删除曲线的表现来看均优于其他三种基于类激活映射的方法。
+从表\ref{tab:pertubation}中可以看出，我们的增强方法显著提高了所有"总体"得分。应用于ViT的Grad-CAM 算法和LRP算法的改进最为明显，这两种算法以前缺乏准确可视化和定位重要特征的能力。使用增强方法后，这些方法能够识别重要特征。图\ref{fig:contrast1}就是一个例子，它表明无论底层网络结构如何，我们的方法都能帮助显著性方法识别神经网络感兴趣的重要特征。
 
-
-表\ref{auc}列出了在50000张图像上进行插入和删除的实验结果。虽然MSG-CAM在单项指标上并不突出，但在AUC(overll)这项指标上却是第一名，比第二名的 Score-CAM高出1.07\%。此外，为了探究图像分类神经网络对目标类别的置信程度与三个指标之间的关系。我们根据每幅图像的分类类别的的最大得分将其分为11组，并统计每组的AUC(insertion)，AUC(insertion)和AUC(overall)，统计数据绘制成了表\ref{IDO}。 从图中可以看出，当图像的分类类别的概率分数较低时，各种显著图解释方法之间很难拉开差距。随着图像的分类类别的概率分数的上升，MSG-CAM逐渐显示出优势。在图像的分类类别的概率分数$\geq 99.99$时，即当图像分类神经模型对这组图像中的分类类别有很高的置信度时，MSG-CAM在AUC(overall)有着明显领先。这表明，当图像分类神经网络接近完美的学习到相关类别信息时，MSG-CAM能准确反映这种情况。
-
-
-\begin{figure}[h]
-	\centering 
-	\includegraphics[width=15cm]{fig/ch3/IDCurve.pdf}
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
-	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
-	\label{fig:IDCurve}
-\end{figure}
 
 
 \begin{table}
-	\renewcommand{\arraystretch}{1.5}
 	\centering
+	\renewcommand{\arraystretch}{1.5}
 	\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
 	\wuhao
-	% \begin{threeparttable}
-		\begin{tabularx}{\textwidth}{XXXXXXXX}%四个c代表该表一共四列，内容全部居中
-			\toprule[1.5pt]
-			AUC&GradCAM&GradCAM++&XGradCAM&ScoreCAM&GroupCAM&CAMERAS&\pmb{MSGCAM} \\
-			\toprule[1.5pt]%第二道横线 
-			Insertion&53.19&51.57&52.57&\pmb{55.10}&54.61&44.10&54.52 \\
-			
-			Deletion&11.52&12.16&11.53&11.43&11.21&\pmb{8.01}&9.78 \\
-			
-			Over-all&41.67&39.41&41.04&43.67&43.40&36.09&\pmb{44.74}\\
-			\bottomrule[1.5pt]%第三道横线
-		\end{tabularx}
-	\end{table}
+	\refstepcounter{table}
+	\label{tab:pertubation}
+	\resizebox{\linewidth}{!}{
+\begin{tabular}{ccccccccc} 
+	\hline
+	\multirow{2}{*}{模型}    & \multirow{2}{*}{显著图解释方法}                 & \multirow{2}{*}{增强算法} & \multicolumn{3}{c}{Predicted}                    & \multicolumn{3}{c}{Target}                        \\ 
+	\cline{4-9}
+	&                                          &                       & 负扰动            & 正扰动            & 总体             & 负扰动            & 正扰动            & 总体              \\ 
+	\hline
+	\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &                       & 41.52          & 34.06          & 7.46           & 42.02          & 33.56          & 8.46            \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{47.54} & \textbf{26.99} & \textbf{20.55} & \textbf{48.46} & \textbf{26.49} & \textbf{21.97}  \\ 
+	\cline{2-9}
+	& \multirow{2}{*}{LRP}                     &                       & 43.49          & 41.94          & 1.55           & 43.49          & 41.94          & 1.56            \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{62.69} & \textbf{27.51} & \textbf{35.18} & \textbf{64.76} & \textbf{26.45} & \textbf{38.31}  \\ 
+	\cline{2-9}
+	& \multirow{2}{*}{partial LRP}             &                       & 50.49          & 19.64          & 30.85          & 50.49          & 19.64          & 30.85           \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{55.57} & \textbf{18.45} & \textbf{37.12} & \textbf{56.13} & \textbf{18.14} & \textbf{37.99}  \\ 
+	\cline{2-9}
+	& \multirow{2}{*}{Transformer attribution} &                       & 54.14          & 17.03          & 37.11          & 55.04          & \textbf{16.04} & 39.00           \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{57.57} & \textbf{16.93} & \textbf{40.64} & \textbf{58.83} & 16.25          & \textbf{42.58}  \\ 
+	\hline
+	\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &                       & 38.08          & 12.15          & 25.93          & 39.04          & 11.71          & 27.33           \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{39.07} & \textbf{10.20} & \textbf{28.87} & \textbf{40.09} & \textbf{9.78}  & \textbf{30.31}  \\ 
+	\cline{2-9}
+	& \multirow{2}{*}{GradCAM++}               &                       & 40.50          & 11.79          & 28.71          & 40.81          & 11.61          & 29.20           \\ 
+	\cline{4-9}
+	&                                          & \checkmark                     & \textbf{40.95} & \textbf{10.09} & \textbf{30.86} & \textbf{41.49} & \textbf{9.81}  & \textbf{31.68}  \\
+	\hline
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch4/Contrast.png}
+	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
+	\label{fig:contrast1}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch4/Contrast1.png}
+	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
+	\label{fig:contrast2}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch4/classSensitive.png}
+	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
+	\label{fig:classSensitive}
+\end{figure}
 	
-	\begin{table}
-		\renewcommand{\arraystretch}{1.5}
-		\centering
-		\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
-		\wuhao
-		\begin{tabular}{ccccccc} %需要10列
-			\toprule[1.5pt] %添加表格头部粗线
-			\multicolumn{2}{c}{\multirow{2}{*}{Method}}& \multicolumn{2}{c}{PASCAL VOC test}&&\multicolumn{2}{c}{COCO 2014 validation}\\
-			\multicolumn{2}{c}{}&&Mean Accuracy($\%$)&&Mean Accuracy($\%$)&\\  %有n个&，就表示该行有n+1列
-			\toprule[1.5pt] %绘制一条水平横线
-			\multicolumn{2}{c}{Grad-CAM}&   &83.04&    &55.50&    \\   % 占两列，列名为A；后面陆续跟着数字
-			\multicolumn{2}{c}{Grad-CAM++}&   &83.21&    &52.91&   \\
-			\multicolumn{2}{c}{XGrad-CAM}&   &86.70&    &55.93&   \\
-			\multicolumn{2}{c}{Score-CAM}&   &73.92&   &51.20&   \\
-			\multicolumn{2}{c}{Group-CAM}&   &82.41&  &54.14&   \\
-			\multicolumn{2}{c}{CAMERAS}&   &87.16&    &55.40&   \\
-			\multicolumn{2}{c}{\pmb{MSG-CAM}}&   &\pmb{87.24}&   &\pmb{56.62}&   \\
-			\bottomrule[1.5pt] %添加表格底部粗线
-		\end{tabular}
-		\label{point}
-	\end{table}
+\subsection{图像分割实验}
+图像分割实验将每张显著图视为图像的软分割，并将其与ImageNet-Segmentation数据集的真实标注的分割进行比较。在分割实验中，计算每个突出图中像素的平均值，并将突出图中高于平均值的像素设为 1，其余像素设为 0。本节使用语义分割中常用的三个指标来衡量性能：像素精确度（Pixel Accuracy）、平均交叉重叠率（mIoU）和平均精确度（mAP），其中mIoU即对每张显著图进行平均值阈值化处理后获得的准确度，mAP是使用不含阈值的显著图计算得出的。
+
+分割结果如表\ref{tab:seg}所示。从中可以看出，我们的增强方法在所列的像素精确度（Pixel Accuracy）、平均交叉重叠率（mIoU）和平均精确度（mAP）关键指标,上都有显著的改进，甚至 Transformer attribution~\cite{chefer2021transformer} 也能获得不可忽略的改进，这是目前在基于Transformer架构上的图像分类神经网络ViT模型上表现最好的方法。这表明，本章的增强方法可以帮助提高当前显著图解释方法在分割领域的性能。
+\begin{table}
+\renewcommand{\arraystretch}{1.5}
+\centering
+\bicaption[\xiaosi 显著图增强算法在图像分割的表现]{\wuhao 不同的显著图解释方法应用增强算法前后图像分割的表现}{\wuhao Performance of saliency map enhancement algorithms for image segmentation}
+\wuhao
+	\label{tab:seg}
+	\begin{tabular}{cccccc} 
+		\hline
+		模型                     & 显著图解释方法                                  & 增强算法 & Pixel Acc(\%)      & mAP(\%)             & mIoU(\%)             \\ 
+		\hline
+		\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &      & 64.44          & 71.60          & 40.82           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{70.33} & \textbf{77.02} & \textbf{47.81}  \\ 
+		\cline{2-6}
+		& \multirow{2}{*}{LRP}                     &      & 51.09          & 55.68          & 32.89           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{69.34} & \textbf{80.88} & \textbf{50.37}  \\ 
+		\cline{2-6}
+		& \multirow{2}{*}{partial LRP}             &      & 76.31          & 84.67          & 57.94           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{80.42} & \textbf{85.83} & \textbf{62.85}  \\ 
+		\cline{2-6}
+		& \multirow{2}{*}{Transformer attribution} &      & 79.74          & 86.03          & 62.01           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{81.90} & \textbf{86.56} & \textbf{64.56}  \\ 
+		\hline
+		\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &      & 69.03          & 76.76          & 48.99           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{73.78} & \textbf{79.99} & \textbf{53.82}  \\ 
+		\cline{2-6}
+		& \multirow{2}{*}{GradCAM++}               &      & 76.77          & \textbf{85.48} & 58.89           \\ 
+		\cline{3-6}
+		&                                          & \checkmark    & \textbf{78.60} & 85.42          & \textbf{60.58}  \\
+		\hline
+	\end{tabular}
+\end{table}
 	
-	\begin{figure*}[htbp]
-		\centering
-		\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
-		\subfigure[Insertion score divides into segments]{
-			\includegraphics[width=6cm]{fig/ch3/insertion.png}
-		}
-		\subfigure[deletion score divides into segments]{
-			\includegraphics[width=6cm]{fig/ch3/deletion.png}
-		}
-		\subfigure[over-all score divides into segments]{
-			\includegraphics[width=6cm]{fig/ch3/overall.png}
-		}
-		% \quad
-		\label{IDO}
-	\end{figure*}
-	
-	
-	
-	\subsection{定点游戏实验}
-	定点游戏（pointing game）\textsuperscript{\cite{zhang2018top}}实验对于给定显著图解释方法的空间选择性能够给出比较客观的评估结果。所谓空间选择性就是定点游戏要求图像分类神经网络对给定类别在输入图片中指出其所在位置，这对显著图解释方法提出了挑战，方法生成的显著图必须要准确反映给定类别在输入图片的具体位置。定点游戏的具体操作是从针对一个指定类别生成的显著图中找到值最大的那个点并记录它的坐标，如果该坐标位于该类别对象的预先人工标注的边界框内部，则记录一次击中（hit）,否则就是没有击中（miss）。定点游戏的量化评价指标即是显著图解释方法在给定数据集上对输入图片中所有类别的击中准确率，具体计算公式如下：
-	\begin{equation}
-		Acc=\frac{\#hits}{\#hits+\#misses}
-		\label{eq:point}
-	\end{equation}
-	在式\ref{eq:point}中，$\#hits$表示数据集中所有显著图的最大值点落在标注框中的个数，$\#misses$则表示数据集中所有显著图的最大值点落在标注框外的个数。在只计算最大值空间选择性的定点游戏当中，$\#hits+\#misses$就等于数据集中所有图片标注框的个数。
-	
-	为了更加精确的反映显著图的空间选择性，本节实验当中摈弃了只计算最大值点所在坐标的做法，转而计算显著图中里面从大到小的前100个点的坐标，这可以排除偶发性的噪声影响。最终的性能指标是对一个数据集中每个类别的$Acc$取平均。在本次实验中，我们使用的是VGG19模型，且分别在PASCAL VOC测试集和COCO 2014验证集上进行了微调训练。如表\ref{point}所示，我们的方法在两个数据集上都处于领先地位，这表明我们的方法比其他基于类激活映射图的方法更能反映图像分类神经网络的空间选择性。
-	
-	\subsection{合理性检验}
-	部分基于反向传播的显著图方法对模型参数并不敏感，这意味不管图像分类模型有没有经过训练，它们都能够给出相似的结果，这显然是违背显著图解释的初衷。所以，能否通过合理性检验是衡量显著图解释方法是否具备可解释性的标准。具体而言，本节~\cite{zhang2018top}根据中的实验方法对经过预训练的VGG19采用级联随机化（cascade randomization）和独立随机化（independent randomization）。级联随机化是从靠近模型的输出端开始，逐渐将卷积层的参数随机化，直至将所有卷积层的参数随机化。 独立随机化也是从靠近模型的输出端开始，每次仅将单独的一层卷积层参数随机化，其他卷积层不变。
-	
-	图\ref{fig:sanitycheck}中展示了MSG-CAM在单一图片下分别进行级联随机化和独立随机化的结果示意图，图中Conv34表示的是将VGG19的第34层卷积层经过独立随机化和级联随机化后的显著图生成结果，其他的Conv32等以此类推。可以看出无论是级联随机化还是独立随机化，本章提出的MSG-CAM生成的显著图均受到了明显影响，表面MSG-CAM是受到图像分类神经网络训练参数影响的，能够通过合理性检验。
-	
-	\begin{figure}[h]
-		\centering 
-		\includegraphics[width=15cm]{fig/ch3/sanityCheck.pdf}
-		\bicaption[\xiaosi MSG-CAM合理性检验]{\wuhao MSG-CAM合理性检验示意图}{\wuhao Sanity check of MSG-CAM}
-		\label{fig:sanitycheck}
-	\end{figure}
-	
-	
-	\subsection{图}
-	下面给出图片示例：
-	
-	%调整图片与上方文字之间的间距
-	%\vspace{-0.1cm}
-	
-	\begin{figure}[h]
-		\centering 
-		\includegraphics[width=10cm]{chapters/31}
-		\bicaption[\xiaosi 不同缩放系数v的缩放效果]{\wuhao 不同缩放系数v的缩放结果}{\wuhao Scaling results with different scaling coefficients ν}
-		\label{fig:3.1}
-	\end{figure}
-	
-	%调整图片与下方文字之间的间距
-	%\vspace{-0.35cm}
-	
-	图片标题与图片之间的间距使用默认设置即可，与上下文的间距由于LATEX动态排版特性，需要大家手动调整。
-	
-	。
-	
-	。
-	
-	。
-	
-	。
-	
-	。
-	
-	。
-	
-	。
-	
-	。
-	
-	
-	
-	下图是多子图示例：
-	%\vspace{-1cm}
-	
-	
-	
-	\begin{figure}[h]
-		\centering
-		\subfigure[]{
-			\label{fig:DE_J}
-			\includegraphics[width=12cm]{chapters/DE_J.pdf}}
-		\subfigure[]{
-			\label{fig:DE_CF}
-			\includegraphics[width=12cm]{chapters/DE_CF.pdf}}   
-		\bicaption[\xiaosi 理论效率与$\gamma$和$\varphi$的关系。]{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}{\wuhao Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
-		
-		%	\caption{\wuhao 理论效率与$\gamma$和$\varphi$的关系。 (a) $\alpha=1$; (b) $\alpha=2/\sqrt{3}$}
-		%%	\raggedright
-		%	\wuhao Fig. 3-2 Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.Theoretical DE versus $\gamma$ and $\varphi$. (a) $\alpha=1$. (b) $\alpha=2/\sqrt{3}$.
-	\end{figure}
-	
-	\vspace{-0.5cm}
-	
-	\subsection{表}
-	
-	表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
-	
-	\vspace{0.1cm}
-	
-	\begin{table}[h]
-		\renewcommand{\arraystretch}{1.5}
-		\centering
-		\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
-		\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
-			\toprule
-			\makecell[c]{\songti\wuhao 电流类型}&\makecell[c]{\songti\wuhao A}&\makecell[c]{\songti\wuhao B}&\makecell[c]{\songti\wuhao C}\\
-			\hline
-			\makecell[c]{\wuhao aaa}&\makecell[c]{\wuhao aa1}&\makecell[c]{\wuhao bb1}&\makecell[c]{\wuhao cc1}\\
-			\bottomrule
-		\end{tabular}
-		\label{tab:3.1} 	
-	\end{table}
-	
-	表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。表格格式参照写作指南。
-	
-	\vspace{-0.1cm}
-	
-	\begin{table*}[h]
-		\renewcommand{\arraystretch}{1.5}
-		\bicaption[\xiaosi 高效率功放性能对比]{\wuhao 高效率功放性能对比}{\wuhao High-effiency power amplifier performance comparison}
-		\label{tab_1}
-		\centering
-		\wuhao
-		\begin{tabular}{c c c c c }
-			\hline
-			{\textbf{带宽}(GHz)}&{\textbf{功率}(dBm)}&{\textbf{效率}(\%)}&{\textbf{线性度}(dBc)}&{\textbf{信号带宽}(MHz)}\\
-			\hline
-			1.4--2.6&32--34&30--40 (DE)&-25 -- -30 (ACLR)&5\\
-			\hline
-			\multirow{2}{*}{2.1--2.7}&39&45 (DE) @ 2.14 GHz&--31 (ACLR)&\multirow{2}{*}{5}\\\cline{3-4}
-			&(average)&40 (DE) @ 2.655 GHz&--30 (ACLR)&\\
-			\hline
-			3.5&38.1&59 (PAE)&30 (C/I)&5\\
-			\hline
-			\multirow{2}{*}{1.6--2.6}&36.0--38.5&45--60 (PAE)&30 (C/I)&5\\\cline{2-5}
-			&35.3--37.5&40--55 (PAE)&--30 (ACLR)&20\\
-			\hline
-		\end{tabular}
-	\end{table*}
-	
-	
-	\section{公式格式}
-	
-	\begin{equation}
-		\left\{ \begin{aligned}
-			0.794 \le \zeta  \le 1 ~~~~~~~~~~~\\
-			0.631 \le \gamma  = \frac{{0.631}}{{{\zeta ^2}}} \le 1~~~~~~ \\
-			- \frac{1}{{2\gamma }} \le \delta  \le \frac{1}{{2\gamma }}~~~~~~~~~~~ \\
-			{Z_{c,low,f}} = 2{R_{opt}}(\gamma  + j\delta )~~~~~\\
-			{Z_{c,2f}} = {Z_{c,low,2f}} =  - j\frac{{3\pi }}{4}\gamma \delta {R_{opt}}
-		\end{aligned} \right.
-		\label{eq:3.1}
-	\end{equation}
-	
-	\begin{equation}
-		\begin{aligned}
-			v(\theta ) = V_{DD}\cdot(1 - \alpha cos(\theta  + \varphi ) + \beta cos(3\theta  + 3\varphi ))\\
-			\cdot(1 - \gamma \sin (\theta  + \varphi )) ~~~~~- 1 \le \gamma  \le 1\
-		\end{aligned}
-		\label{eq:vd}
-	\end{equation}
-	
-	
-	
-	
-	\noindent
-	公式格式测试。${\mathbf{\Theta }} = \left\{ {{\theta _k}\left( n \right),\forall k,n} \right\}$
-	
-	\section{印制要求}
-	涉密学位论文的印刷、制作、传递、存档等，须符合国家、学校相关保密要求。学位论文一律左侧装订。
-	
-	中文摘要之前的前置部分（封面、中、英文题名页、独创性声明和使用授权书），采用单面印刷。
-	
-	从中文摘要开始，采用双面印刷。
-	
-	中文摘要及之后的前置部分，包括中文摘要、ABSTRACT、目录、图目录（如有）、表目录（如有）、主要符号表（如有）、缩略词表（如有），在双面印刷时，若某部分页数为奇数，则该部分最后一页单面印刷。例如：若“摘要”只有1页，则其页码是“Ⅰ”，第“Ⅰ”页纸的背面为空白（无页眉或页码）；“ABSTRACT”用新的一张纸印刷，页码从“Ⅱ”开始。
-	
-	从第1章第1页开始，至论文最后1页，所有页面均双面印刷。例如：若第1章的最后1页为第17页，则第2章的第1页在第17页的背面印刷，页码为“18”（页眉是“重庆邮电大学博士（硕士）学位论文”）。
-	
-	一次性双面打印整本学位论文技巧：除用于打印的版本外，电子版论文中一律不得出现空白页。论文打印建议使用PDF格式。为方便一次性双面打印，有时可在单面印刷的部分（如封面、中、英文题名页、独创性声明和使用授权书），或者双面打印只有1页的某部分内容（如摘要、ABSTRACT等）后插入1页空白页，该空白页不编排页眉页码；论文中出现的页码应前后连续，不得中断。
-	
-	
-	\section{本章小结}
+\section{本章小结}
 	本章介绍了……
