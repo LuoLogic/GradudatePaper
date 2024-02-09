@@ -14,73 +14,257 @@
 %一些早期的研究单纯通过反向传播的梯度差异来生成显著图描述图像分类模型在输入图片中感兴趣的区域，后来
 深度神经网络的可解释方面的研究是在最近十年才逐渐兴起并收到关注的，在计算机视觉领域，基于深度卷积神经网络的图像分类模型是较早受到研究的，研究者试图从参数量庞大的深度卷积神经网络中找到输出结果和在输入图片中对应的依据。也有一些研究者将图像分类神经网络看作是一个黑盒，通过各种手段扰动输入图片观测输出结果变化来生成显著图。随着Transformer架构异军突起，基于Transformer架构的图像分类神经网络的可解释性也逐渐受到关注和研究，也已经由研究者设计了针对Transformer架构的反向传播归因机制，该机制在计算机视觉领域也能生成效果良好的显著图。上述的深度神经网络可解释研究生成的显著图较少关注显著图生成的质量和对关键特征的定位能力，本文的显著图解释研究专注于对显著图生成质量的改善和相关显著图解释算法的改善。
 
-接下来本章首先介绍图像分类神经网络的主流架构概念包括基于卷积神经网络（CNN）的和基于Transformer架构的，然后介绍三种著名的深度学习可解释算法，这些算法在图像分类神经网络上也能生成显著图，最后介绍当前显著图解释算法的评价指标。
+接下来本章首先介绍图像分类神经网络的主流架构概念包括基于卷积神经网络（CNN）的和基于Transformer架构的，然后介绍五种著名的深度学习可解释算法，这些算法在图像分类神经网络上也能生成显著图，后续实验当中这五种算法也会用来作为对比。
 
-\section{卷积神经网络 }
-
-\section{}
-
-学位论文包括前置部分、主体部分和结尾部分共三大部分，各部分组成及顺序如所示。
-
-学位论文各部分独立为一部分，每部分应从新的一页开始。
-
-论文的正文（中间各章）是论文的核心部分，一般由标题、文字叙述、图、表格和公式等部分构成。由于涉及的学科、选题、研究方法等有很大的差异，可以有不同的写作表达方式，但应遵循本学科通行的学术规范，必须实事求是，客观真切，准确完备，合乎逻辑，层次分明，简练可读。引用他人研究成果时，应注明出处，不得将其与本人的工作混淆。
-
-
-\section{字数要求}
-字数要求
-
-
-\subsection{硕士论文要求}
-
-各学科和学部自定。
-
-\subsection{博士论文要求}
-
-各学科和学部自定。
-
-\section{字体和段落}
-学位论文中的中文统一用宋体，数字和英文统一用Times New Roman字体。从中文摘要开始，所有文字段落和标题行间距均取固定值20磅；所有段落按两端对齐、首行缩进2个全角字符方式书写内容。
-
-中、英文混排时，除小数点以及引用的分图序号、公式序号等外，宜使用全角标点符号（逗号、冒号、括号、引号等）；英文段落中，符号使用应遵循英文书写习惯，统一使用半角符号，并规范使用空格。
-
-其他要求：
-
-（1）各级标题不得置于页面的最后一行，即须与下段同页；
-
-（2）两个标题之间无正文时，第二个标题的段前距设置为0磅；
- 
-（3）图、表、公式统一采用单倍行距；
-
-（4）只有一、两行文字的，不得单独作为一页内容；除各章最后一页外，中间页面不得出现较大空白；
-
-（5）必要时，可在规定的格式要求基础上适当微调，以利于排版，但显示效果不得与规定的格式要求存在明显差距。
-
-%调整图片与上方文字之间的间距
-\vspace{-0.15cm}
+\section{卷积神经网络}
+卷积神经网络（Convolutional Neural Networks，CNNs）一种特殊类型的神经网络，特别适合于计算机视觉应用。它的设计灵感来源于生物学上对动物视觉皮层的研究，旨在模拟人类视觉系统的工作原理。卷积神经网络的结构包括卷积层、池化层和全连接层，这些层的组合使得CNNs能够有效地处理图像识别、分类和分割等任务。有两个关键的设计思想推动了卷积架构在计算机视觉中的成功。首先，卷积神经网络利用图像的二维结构和一个邻域内的像素通常高度相关的事实。因此，ConvNets避免使用所有像素单元之间的一对一连接(即大多数神经网络的情况)，而倾向于使用分组的局部连接。此外，ConvNet架构依赖于特征共享，因此每个通道(或输出特征映射)都是由在所有位置使用相同滤波器进行卷积生成的，如图\ref{fig:conv1}所示。与标准神经网络相比，卷积神经网络的这一重要特征导致其架构依赖的参数要少得多。其次，卷积神经网络还引入了一个池化步骤，该步骤提供了一定程度的平移不变性，使体系结构较少受到位置变化的影响。另外，池化还允许网络逐渐看到更大的输入部分，这要归功于网络接受视野的增加。随着网络深度的增加，接受视野的大小增加（同时输入分辨率减小），使得网络能够表示输入的更抽象特征。例如，在目标识别任务中，卷积神经网络的层从关注物体的边缘开始，逐渐覆盖整个物体的各个部分，最终从更高层次上覆盖整个物体。
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=10cm]{chapters/31}
-	\bicaption[\xiaosi 不同章节图片排版测试]{\wuhao 图片排版测试}{\wuhao Scaling results with different scaling coefficients ν}
-	\label{fig:2.1}
+	\includegraphics[width=12cm]{fig/ch2/conv1.png}
+	\bicaption[\xiaosi 标准卷积网络结构示意图]{\wuhao 标准卷积网络结构示意图}{\wuhao Illustration of the structure of a standard Convolutional Network}
+	\label{fig:conv1}
 \end{figure}
 
-%调整图片与下方文字之间的间距
-\vspace{-0.5cm}
+卷积神经网络的核心是卷积层，它通过卷积操作提取输入图像的特征。卷积操作是一种线性、平移不变的操作，它通过在输入信号上进行局部加权组合来捕获不同的特征。卷积操作的参数是卷积核，不同的卷积核可以捕获图像的不同特征，例如边缘、纹理和形状等。卷积层的输出被送入激活函数进行非线性变换，以增加网络的表达能力。
 
-\section{章节标题}
-目录中章节标题只显示到3级标题，正文中最多显示到4级标题。
+除了卷积层，池化层也是卷积神经网络中的重要组成部分。池化层通过对卷积层的输出进行下采样，减少特征图的尺寸，同时保留最显著的特征。这有助于使网络对输入的位置变化具有一定的不变性，同时减少了参数数量，提高了计算效率。
 
-\subsection{三级标题}
-
-\vspace{0.5cm}
-
-\subsubsection{四级标题}
-
-\vspace{0.3cm}
+全连接层通常位于网络的末尾，用于将卷积层和池化层提取的特征映射转换为最终的分类或回归结果。全连接层将所有特征进行组合，最终输出网络对输入的预测结果。
 
 
+\section{基于Transformer的图像分类神经网络}
+ 
+\section{常见的显著图解释方法}
+本节将会介绍常见的显著图解释方法，其中包括Grad-CAM
+
+\subsection{Grad-CAM}\label{sub:gradcam}
+Grad-CAM（Gradient-weighted Class Activation Mapping）是一种用于解释深度学习模型的方法，它能够生成图像级别的重要区域热力图，从而帮助理解模型的决策过程。Grad-CAM的主要优点是它不需要对模型进行修改，可以应用于任何卷积神经网络模型，并且能够提供直观的可视化结果。
+
+Grad-CAM的核心思想是利用模型的梯度信息和特征图信息来推导出图像中哪些区域对于模型的分类决策最为关键。在深度学习模型中，每个卷积层都可以看作是对输入图像进行特征提取的过程，因此可以通过分析梯度信息来了解哪些特征对于模型的分类决策起到了关键作用。之前的一些研究已经断言，卷积神经网络的更深层表征捕获了更高层次的视觉结构\textsuperscript{\cite{bengio2013representation}\cite{mahendran2016visualizing  }}。此外，卷积层自然地保留了在全连接层中丢失的空间信息，因此Grad-CAM的作者认为最后一层卷积层在高级语义和详细空间信息之间有良好的表现。因此Grad-CAM使用流入卷积神经网络最后一个卷积层的梯度信息，为每个神经元分配一个特定感兴趣的决策的重要性值。虽然Grad-CAM的技术相当通用，因为它可以用来解释深度网络任何层的激活，但是一般来说它用来可视化解释输出层做的决定。
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch2/gradcam1.png}
+	\bicaption[\xiaosi Grad-CAM流程示意图]{\wuhao Grad-CAM流程示意图}{\wuhao Pipeline of  Grad-CAM}
+	\label{fig:gradcam1}
+\end{figure}
+
+下面详细解释一下Grad-CAM的计算过程。若假设$I \in \mathbb{R}^{3\times H \times W}$是输入图片， $\mathcal{F}$是预训练好的基于卷积神经网络的图像分类模型，$\mathcal{F}_c(I)$ 表示输入图片是$I$的情况下模型$\mathcal{F}$输出的关于类别索引$c$的分数（该分数未经Softmax函数）。对于给定的模型$\mathcal{F}$卷积层$l$，在图片$I$输入到模型$\mathcal{F}$前向传播过程中可以从卷积层$l$提取特征图集合$\overset{*}{\bm{A}}$。为了获取具有类别区分性的显著图，Grad-CAM首先需要计算关于类别$c$的梯度，为了得到 $\mathcal{F}_c(I)$ 相对于 第$k$张特征图 $A^k \in \overset{*}{\bm{A}}$ 的梯度，我们可以对 $\mathcal{F}_c(I)$ 进行反向传播。为了得到每个特征图的重要性权重，梯度会在高度和宽度两个维度上进行全局平均。
+\begin{equation}
+	w^c_k=\frac{1}{m\times n}\sum_{i=1}^{m}\sum_{j=1}^{n}\frac{\partial \mathcal{F}_c(I)}{\partial A_{ij}^k(I)}
+	\label{eq:gradcam_wk}
+\end{equation}
+式子\ref{eq:gradcam_wk}表示了特征图集合中特征图$A^k$的权重计算方式，其中，$A_{ij}^k$ 表示 第$k$张特征图中 第$i$ 行和 第$j$ 列的值，$m$ 和 $n$ 分别是梯度矩阵的宽度和高度。$w^c_k \in \overset{*}{\bm{W}}$ 是 第$k$张 特征图的权重。$\overset{*}{\bm{W}}$是大小为$K$的一维向量，$K$是$\overset{*}{\bm{A}}$的通道数。
+
+
+$w^c_k $的含义表示第$k$张特征图在后续计算中对输出分数$\mathcal{F}_c(I)$的贡献程度。最后将每张特征图和其权重相乘然后将相乘结果进行线性组合，最后通过ReLU函数即可得到Grad-CAM的显著图。具体计算方式如下所示：
+\begin{equation}
+	L_{Grad-CAM}=ReLU(\sum_K(w^c_k A^k))
+	\label{eq:gradcam}
+\end{equation}
+需要注意的是注意，这会产生一个与特征图$A^k$大小相同的原始显著图，若需要将其展示重叠在输入图片上，应该将其进行上采样。还有就是ReLU函数应用于显著图的线性组合，是因为Grad-CAM只对感兴趣的类别有积极影响的特征感兴趣，即类别索引$c$所代表的类别。原始显著图中为负值的像素可能属于图像中的其他类别。若没有这个ReLU函数，显著图中会将其他不相干的类别进行凸显。图\ref{fig:gradcam1}简要展示了Grad-CAM的工作流程。
+
+\subsection{Grad-CAM++}
+在原始的CAM\textsuperscript{\cite{zhou2016learning}}方法中每张特征图的权重$w^c_k$是通过最后一层卷积层生成的特征图来训练线性分类器来获得的，但是其局限是必须使用全局平均池化层，需要重新训练模型，Grad-CAM解决了这一问题，通过最后的类别分数反向传播对最后一层卷积层的特征图求导，利用单个梯度矩阵的平均值来得到单张特征图权重，但是这会导致其对于某张特征图加权值过大从而将其他包含目标物体特征的特征图权值过小，从而在最后生成的显著图上忽略关键的特征。图\ref{fig:gradcampp1}举例说明了这一现象，如图所示，图中黑色方块部分表示目标物体在图中二维空间上特征分布，最后经过卷积层生成3个特征图分布是$A^1$、$A^2$和$A^3$，其中$A^1$特征图的特征区域占比最多，$A^2$和$A^3$的特征区域明显较少，如果使用Grad-CAM的加权方式则最后的生成的显著图会将$A^2$和$A^3$的特征区域弱化甚至忽略，这显然是不对的。这种情况一般会出现在有多个目标物体的图片当中。
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch2/gradcampp1.png}
+	\bicaption[\xiaosi 一个假设性的例子说明Grad-CAM++的优势]{\wuhao 一个假设性的例子说明Grad-CAM++的优势}{\wuhao A hypothetical example elucidating the intuition behind Grad-CAM++}
+	\label{fig:gradcampp1}
+\end{figure}
+
+
+Grad-CAM++为了解决这一现象则没有直接将梯度矩阵直接全剧平均池化取平均值来作为特征图权重，而且为梯度矩阵上每一个元素赋予了一个权重，之后将梯度矩阵上的元素值全部相加取和作为特征图权重。具体的权重表示公式如下：
+\begin{equation}
+	w_{k}^{c}=\sum_{i} \sum_{j} \alpha_{i j}^{k c} \cdot \operatorname{ReLU}\left(\frac{\partial Y^{c}}{\partial A_{i j}^{k}}\right)  
+	\label{eq:gradcampp_wkc}
+\end{equation}
+式\ref{eq:gradcampp_wkc}中$Y^{c}$即和章节\ref{sub:gradcam}$中\mathcal{F}_c(I)$含义一致，均表示输入图片进入模型中，模型输出的关于类别索引$c$的分数。$i$和$j$表示特征图中的$A^{k}$的行列迭代器。式\ref{eq:gradcampp_wkc}中$\alpha_{i j}^{k c}$的具体计算方式如下：
+\begin{equation}
+	\alpha_{i j}^{k c}=\frac{\frac{\partial^{2} Y^{c}}{\left(\partial A_{ij}^{k}\right)^{2}}}{2 \frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}+\sum_{a} \sum_{b} A_{a b}^{k}\frac{\partial^{3} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{3}}}
+	\label{eq:gradcampp_akc}
+\end{equation}
+
+将式\ref{eq:gradcampp_akc}和式\ref{eq:gradcampp_wkc}结合即可得到如下完整的权重计算公式：
+\begin{equation}
+	w_{k}^{c}=\sum_{i} \sum_{j}\left[\frac{\frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}}{2 \frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}+\sum_{a} \sum_{b} A_{a b}^{k}\frac{\partial^{3} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{3}}}\right] \cdot \operatorname{ReLU}\left(\frac{\partial Y^{c}}{\partial A_{i j}^{k}}\right)
+\end{equation}
+得到权重后，将权重$w_{k}^{c}$和其对应的特征图$A^k$相乘，然后所有特征图线性相加即可得到Grad-CAM++生成的最终显著图。计算过程和式\ref{eq:gradcam}一致。图\ref{fig:gradcampp2}中展示了CAM、Grad-CAM、Grad-CAM++的权重计算方式异同。
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/gradcampp2.png}
+	\bicaption[\xiaosi CAM, Grad-CAM, Grad-CAM++的各自计算方式]{\wuhao CAM, Grad-CAM, Grad-CAM++的各自计算方式}{\wuhao Respective calculations for CAM, Grad-CAM, Grad-CAM++}
+	\label{fig:gradcampp2}
+\end{figure}
+
+\subsection{Score-CAM}
+Grad-CAM和Grad-CAM++都依赖反向传播的梯度作为权重，但是这种基于梯度的方法也有缺点，若激活函数是Sigmoid函数或者ReLU函数，则会分别带来梯度饱和以及梯度消失的问题\textsuperscript{\cite{simonyan2014visualising}}，反映到显著图上就是会导致噪声问题。此外依靠梯度作为权重也存在不可靠的问题，如图\ref{fig:scorecam1}所示，在这幅图中(2)(3)(4)分别是对应的特征图上采样后叠加到原图上，其中没有遮盖的部分表示该特征图在原图上较为关注的特征区域，将(2)(3)(4)通过图像分类模型，得到对应类别的得分分别是 0.003，0.999，0.997。从结果上看，(3)(4)的特征图关注的区域对于该类别是比较重要的。然而在生成Grad-CAM的显著图时，这三者计算出的权重分别是0.035,0.027,0.021。反而是对于结果影响很小的(2)的特征图权重更高。这就显示出了基于梯度的类激活映射方法的不足。
+
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/scorecam1.png}
+	\bicaption[\xiaosi 特征图扰动示例]{\wuhao 特征图扰动示例}{\wuhao Example of feature map perturbation}
+	\label{fig:scorecam1}
+\end{figure}
+
+因此Score-CAM不依赖于梯度来获得特征图线性加权的权重，而是通过每张特征图在目标类上的前向传播的概率分数来获得每张特征图的权重。下面通过具体的定义来说明Score-CAM的计算方式。当输入图片为$I \in \mathbb{R}^{3\times H \times W}$时，图像分类模型为$\mathcal{F}$时，经过前向传播从指定卷积层$l$提取的第$k$个通道的特征图为$A^k_l$，那么该特征图对于指定类别$c$的概率分数$\mathcal{F}_c(I)$的贡献程度，即$A^k_l$权重$C(A^k_l)$可以由以下式子计算得出：
+\begin{equation}
+	C(A^k_l)=\mathcal{F}_c(I \circ H(^k_l))-\mathcal{F}_c(I_b)
+	\label{eq:scorecam_C}
+\end{equation}
+式子\ref{eq:scorecam_C}中，$I_b$表示一张基准图像，该图像要求在类别索引$c$上的概率值尽可能的小，即$\mathcal{F}_c(I_b)$的值趋近于0，在算法实际实施的过程当中，该基准图片$I_b$一般是值均为0的全黑图像。$\circ$表示哈达玛积运算，即运算符两边的矩阵对应位置元素相乘，$H(^k_l)$是$A^k_l$上采样后的图片。其计算式子如下所示：
+\begin{equation}
+	H(^k_l)=s(U\!p(A^k_l))
+	\label{eq:scorecam_H}
+\end{equation}
+式\ref{eq:scorecam_H}中，$U\!p$表示上采样运算，此处是将特征图其$A^k_l$上采样至原始输入图片尺寸。$s$表示对图片进行归一化运算，将图片中的所有像素值控制在$[0,1]$。最后可以得到Score-CAM的显著图计算式子：
+\begin{equation}
+	L_{\text {Score-CAM }}^{c}=\operatorname{ReLU}\left(\sum_{k} \alpha_{k}^{c} A_{l}^{k}\right)
+	\label{eq:scorecam_L}
+\end{equation}
+式\ref{eq:scorecam_L}中，权值$\alpha_{k}^{c}$即表示$C(A^k_l)$。Score-CAM和Grad-CAM，Grad-CAM++最大的不同就是它创新性的利用特征图作为扰动输入图片的掩膜，以网络模型关于指定类别的概率分数来作为每张特征图的权重。
+
+
+\subsection{LRP}
+LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，是深度学习中用于理解和解释神经网络决策的一种技术。LRP的主要思想是通过赋予输出结果一个相关性的分数，然后定义反向传播规则，将该相关分数逐层向后传播，通过计算给每层的每个神经元赋予一个相关性分数来表示它对输出结果的贡献程度，传播回输入层即可得到输入图片中每个像素的相关性分数，分数值的大小表示该像素与最终决策结果的相关性程度，也即贡献程度。利用获得的输入图片的每个像素的相关性分数也可以生成显著图。在传播过程中每层网络的神经元的相关性分数总和是一致的。通过这样做，LRP有助于揭示每个输入特征对最终决策的贡献，为神经网络的内部运作提供宝贵的见解。LPR的主要思想遵循以下公式：
+\begin{equation}
+	f(x)\approx \sum_{d=1}^{V} R_d
+	\label{eq:lrp_fx}
+\end{equation}
+式\ref{eq:lrp_fx}中$f(x)$ 表示输入图片是$x$的情况下，其中某一个特定类别在图片$x$中的存在概率。$R_d$ 表示图片中单一像素点对该类别的相关性分数，可以看作是贡献值。图\ref{fig:lrp1}大体展示了这种分解思想。图像$x$被转换为一串特征向量，并应用分类器将图像归入给定类别，如“猫”或 “无猫”，该图中将“猫”的分类结果概率分数作为总的相关性分数反向传播至输入图片中的每个像素，最终可以得到可视化单个像素对预测的贡献。
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch2/lrp1.png}
+	\bicaption[\xiaosi 像素相关性分解过程可视化]{\wuhao 像素相关性分解过程可视化}{\wuhao Visualization of the pixel relevance decomposition process}
+	\label{fig:lrp1}
+\end{figure}
+
+下面结合公式推导详细说明LRP的计算过程。对于图像分类神经网络关于某个类别的输出$f(x)$有以下规则，每层的所有神经元的相关性分数是相等的。
+\begin{equation}
+	f(x)=\ldots=\sum_{d \in l+1} R_{d}^{l+1}=\sum_{d \in l} R_{d}^{l}=\ldots=\sum_{d} R_{d}^{1}
+	\label{eq:lrp_fx2}
+\end{equation}
+式\ref{eq:lrp_fx2}中$l$表示神经网络的某一层，$l$越大越靠近输出层。
+
+对于普通的多层神经网络，有如图\ref{fig:lrp2}所示的计算过程。其中：
+\begin{equation}
+	z_{ij}=x_iw_{ij}
+	\label{eq:lrp_zij}
+\end{equation}
+\begin{equation}
+	z_{j}=\sum_i z_{ij}+b_j
+	\label{eq:lrp_zj}
+\end{equation}
+\begin{equation}
+	x_j=g(z_{j})
+	\label{eq:lrp_xj}
+\end{equation}
+
+对于式\ref{eq:lrp_zij}，神经元$i$乘以其和神经元$j$之间的权重$w_{ij}$得到中间计算结果$z_{ij}$。而式\ref{eq:lrp_zj}的值是第$i$层所有神经元和权重$w _{ij}$相乘后得到的$z_{ij}$的和加上偏置项$b_j$得到的。最后$z_j$经过激活函数$g$得到第$j$层某个神经元的值$x_j$。这三个式子的意思可以总结成所有上层神经元到下层的某个神经元$j$的值，也可以理解成贡献，决定了下层神经元$j$的中间值$z_j$，只不过最后要加上偏置项和经过激活函数。
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=10cm]{fig/ch2/lrp2.png}
+	\bicaption[\xiaosi 多层神经网络前向传播计算示例]{\wuhao 多层神经网络前向传播计算示例}{\wuhao VExample of a multilayer neural network forward propagation calculation}
+	\label{fig:lrp2}
+\end{figure}
+
+
+
+从以上前向传播的示例过程中可以推导出LRP相关性传播的基本过程，如图\ref{fig:lrp3}所示，左半部分是前向传播的过程，右半部分是LRP的相关性反向传播的过程，其中$R_i^{(l)}$表示第$l$层神经元$i$的相关性分数，$R_{i\leftrightarrow j}^{(l,l+1)}$表示$l+1$层的某个神经元$j$的相关性等于$l+1$层的神经元$j$给$l$层所有神经元的相关性之和。下面结合图\ref{fig:lrp4}进行详细说明。
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/lrp3.png}
+	\bicaption[\xiaosi 多层神经网络下前向传播和层间相关性传播过程]{\wuhao 多层神经网络下前向传播和层间相关性传播过程}{\wuhao Forward propagation and LRP processes under multilayer neural networks}
+	\label{fig:lrp3}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/lrp4.png}
+	\bicaption[\xiaosi 层间相关性传播分配相关性分数的例子]{\wuhao 层间相关性传播分配相关性分数的例子}{\wuhao Example of LRP assigning relevance scores}
+	\label{fig:lrp4}
+\end{figure}
+在图\ref{fig:lrp4}中的右半部分，第3层的7号神经元的相关性分数$R_{7}^{(3)}$相关性反向传播时是按照如下式子分配的：
+\begin{equation}
+	R_{7}^{(3)}=R_{4 \leftarrow 7}^{(2,3)}+R_{5 \leftarrow 7}^{(2,3)}+R_{6 \leftarrow 7}^{(2,3)}
+\end{equation}
+其中$R_{4 \leftarrow 7}^{(2,3)}$、$R_{5 \leftarrow 7}^{(2,3)}$和$R_{6 \leftarrow 7}^{(2,3)}$的值，也就是7号神经元分配给第二层的4，5和6号神经元的相关性分数在神经网络是线性的情况下（没有激活函数）可以结合公式\ref{eq:lrp_zij}进行计算，具体计算公式如下：
+\begin{equation}
+	R_{i \leftarrow j}^{(l, l+1)}=\frac{z_{i j}}{\sum_{i} z_{i j}} R_{j}^{(l+1)}
+	\label{eq:lrp_Rij}
+\end{equation}
+式\ref{eq:lrp_Rij}的含义就是就是下层的神经元$j$的分配给上层神经元$j$相关性分数是$j$的总相关性分数乘以神经元$i$输出给$j$的值占$j$收到上层所有值的比。
+
+但是在实际应用当中，神经网络会存在激活函数和偏置，式\ref{eq:lrp_Rij}无法完美应用。考虑到激活函数是双曲正切$Tanh(x)$和$ReLU$函数的情况，可以用以下公式取近似值：
+\begin{equation}
+	R_{i \leftarrow j}^{(l, l+1)}=\frac{z_{i j}}{z_{j}} R_{j}^{(l+1)}
+\end{equation}
+其他激活函数情况可以使用如下式子计算：
+\begin{equation}
+	\sum_{i} R_{i \leftarrow j}^{(l, l+1)}=R_{j}^{(l+1)} \cdot\left(1-\frac{b_{j}}{z_{j}}\right)
+\end{equation}
+
+\subsection{Transformer Attribution}
+Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transformer}}于近些年提出的针对基于Transformer架构的深度神经网络的可解释方法，其在图像分类神经网络上也能够生成质量较高的显著图。Transformer Attribution针对Transformer的特殊结构改进了传统的LRP算法，针对相关性反向传播过程中的注意力层和残差连接的提出了特殊的LRP传播规则，同时将其应用到基于transformer的图片分类模型中，相比之前的可视化算法，Transformer Attribution得到了较为可靠的显著图结果。
+
+下面是Transformer Attribution的详细推导过程。对于LRP传播，总是遵守以下规则：
+\begin{equation}
+	\sum_{j} R_{j}^{(n)}=\sum_{i} R_{i}^{(n-1)}
+\end{equation}
+即每层的相关性分数总和总是相等的。
+
+
+若用$L^{(n)}(\mathbf{X},\mathbf{Y})$表示层对两个张量$\mathbf{X}$和$\mathbf{Y}$的操作。通常，这两个张量是第$n$层的输入特征映射和权重。则LRP遵循通用深度泰勒分解\textsuperscript{\cite{montavon2017explaining}}的规则，具体如下表示：
+
+\begin{equation}
+	R_{j}^{(n)} =\mathcal{G}\left(\mathbf{X}, \mathbf{Y}, R^{(n-1)}\right) =\sum_{i} \mathbf{X}_{j} \frac{\partial L_{i}^{(n)}(\mathbf{X}, \mathbf{Y})}{\partial \mathbf{X}_{j}} \frac{R_{i}^{(n-1)}}{L_{i}^{(n)}(\mathbf{X}, \mathbf{Y})}
+	\label{eq:trans_Rnj1}
+\end{equation}
+对于激活函数是$ReLU$的情况，第$n$层的第$j$个神经元的相关性分数可以如下计算：
+\begin{equation}
+	R_{j}^{(n)}=\mathcal{G}\left(x^{+}, w^{+}, R^{(n-1)}\right)=\sum_{i} \frac{x_{j}^{+} w_{j i}^{+}}{\sum_{j^{\prime}} x_{j^{\prime}}^{+} w_{j^{\prime} i}^{+}} R_{i}^{(n-1)}
+	\label{eq:trans_Rnj2}
+\end{equation}
+式\ref{eq:trans_Rnj1}和式\ref{eq:trans_Rnj2}中，$j$是和第$n$层的神经元对应的，$i$和第$n-1$层的神经元对应，$j^{\prime}$是第$n$层神经元的取和过程中的迭代计数符号。加号表示只保留正值，计算方式为$max(0,x)$。但是Transformer使用的是$GELU$函数，有正值也有负值同时也是非线性函数。其相关性分数计算方式如下：
+\begin{equation}
+	R_{j}^{(n)}  =\mathcal{G}_{q}\left(x, w, q, R^{(n-1)}\right) \\
+	 =\sum_{\{i \mid(i, j) \in q\}} \frac{x_{j} w_{j i}}{\sum_{\{j^{\prime} \mid\left(j^{\prime}, i\right) \in q\}} x_{j^{\prime}} w_{j^{\prime} i}} R_{i}^{(n-1)}
+\end{equation}
+其中$q=\left\{(i, j) \mid x_{j} w_{j i} \geq 0\right\}$，表示只考虑对输入结果有正向贡献的相关性值。
+
+在注意力层中有两个特征图作为输入，因此要分别考虑两者的相关性计算。假设有张量$u$和$v$，那么它们各自的相关性分数计算表示如下：
+\begin{equation}
+	R_{j}^{u^{(n)}}=\mathcal{G}\left(u, v, R^{(n-1)}\right), \quad R_{k}^{v^{(n)}}=\mathcal{G}\left(v, u, R^{(n-1)}\right)
+\end{equation}
+同时它们满足相关性守恒的原则：
+\begin{equation}
+	\sum_j R_{j}^{u^{(n)}}+ \sum_k R_{k}^{v^{(n)}}=\sum_i R_{i}^{(n-1)}}
+	\label{eq:trans_sum}
+\end{equation}
+式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer Attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性:
+
+\begin{equation}
+	\bar{R}_{j}^{u^{(n)}}=R_{j}^{u^{(n)}} \frac{\left|\sum_{j} R_{j}^{u^{(n)}}\right|}{\left|\sum_{j} R_{j}^{u^{(n)}}\right|+\left|\sum_{k} R_{k}^{v^{(n)}}\right|} \cdot \frac{\sum_{i} R_{i}^{(n-1)}}{\sum_{j} R_{j}^{u^{(n)}}}
+	\label{eq:trans_Ru}
+\end{equation}
+
+\begin{equation}
+	\bar{R}_{k}^{v^{(n)}}=R_{k}^{v^{(n)}} \frac{\left|\sum_{k} R_{k}^{v^{(n)}}\right|}{\left|\sum_{j} R_{j}^{u^{(n)}}\right|+\left|\sum_{k} R_{k}^{v^{(n)}}\right|} \cdot \frac{\sum_{i} R_{i}^{(n-1)}}{\sum_{k} R_{k}^{v^{(n)}}}
+	\label{eq:trans_Rv}
+\end{equation}
+
+经过规范化的计算公式在各网络层满足$\sum_{i} R_{i}^{(n)}=1$，且完全满足相关性守恒的原则：
+\begin{equation}
+	\sum_{j} \bar{R}_{j}^{u^{(n)}}+ \sum_{k} \bar{R}_{k}^{v^{(n)}} =\sum_{i} R_{i}^{(n-1)}
+\end{equation}
+
+\begin{equation}
+	0 \leq \sum_{j} \bar{R}_{j}^{u^{(n)}}, \sum_{k} \bar{R}_{k}^{v^{(n)}} \leq \sum_{i} R_{i}^{(n-1)}
+\end{equation}
 
 \section{本章小结}
 本章介绍了……
