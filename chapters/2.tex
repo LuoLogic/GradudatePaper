@@ -34,10 +34,141 @@
 
 
 \section{基于Transformer的图像分类神经网络}
- 
-\section{常见的显著图解释方法}
-本节将会介绍常见的显著图解释方法，其中包括Grad-CAM
+Transformer\textsuperscript{\cite{bengio2013representation}}是一种基于自注意力机制的深度学习模型架构，最初由Vaswani等人于2017年提出，被广泛应用于自然语言处理任务，如机器翻译、文本生成和语言建模等。相较于传统的循环神经网络（RNN）和卷积神经网络（CNN），Transformer在处理长距离依赖性和并行计算方面具有显著优势，成为了当今深度学习领域的研究热点。
 
+Transformer模型的核心思想是完全基于注意力机制来实现信息的传递和组合。在传统的神经网络结构中，信息的传递是通过固定的层次顺序进行的，而Transformer则引入了自注意力机制，使得模型可以在不同位置之间建立动态的注意力联系。这种注意力机制使得模型能够更好地捕捉输入序列中不同位置之间的依赖关系，从而提高了模型在处理长距离依赖性任务时的性能。
+
+如图\ref{fig:vit1}所示，Transformer模型由编码器和解码器两部分组成，每部分都包含多层的注意力机制模块。在编码器中，输入序列首先通过一个自注意力层，然后再通过一个全连接前馈神经网络层。在自注意力层中，每个输入位置都可以与其他位置建立注意力联系，从而使得模型能够同时考虑到整个输入序列的信息。在解码器中，除了编码器的结构外，还引入了一个额外的注意力层，用来对编码器的输出进行进一步处理。
+
+除了自注意力机制，Transformer还引入了位置编码来表示输入序列中不同位置的信息。由于Transformer没有显式的循环结构，无法像RNN一样自然地捕捉序列中的位置信息，因此位置编码的引入可以帮助模型更好地理解输入序列中不同位置的相对位置关系。
+
+另一个Transformer模型的重要特点是其并行计算能力。由于自注意力机制的特性，Transformer可以高效地进行并行计算，加速模型的训练和推理过程。这使得Transformer在处理大规模数据和长序列任务时具有明显的优势。
+
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/vit1.png}
+	\bicaption[\xiaosi Transformer结构示意图]{\wuhao Transformer结构示意图}{\wuhao Illustration of the structure of Transformer}
+	\label{fig:vit1}
+\end{figure}
+
+\subsection{多头自注意力机制}
+多头注意力机制是一种用于增强神经网络模型对输入序列的表示能力的技术。它通过将注意力机制应用于多个头部（head）来并行处理不同的注意力表示，从而提高模型的泛化能力和性能。多头注意力机制最早由Vaswani等人在Transformer模型中提出，并在自然语言处理领域取得了巨大成功。
+
+多头注意力机制的基本原理是将输入序列分别映射到多个不同的查询、键和值空间，并通过计算每个头部的注意力权重来融合不同的信息。具体来说，多头注意力机制可以表示为以下公式：
+\begin{equation}
+	\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O
+\end{equation}
+
+
+
+其中，$Q, K, V$分别表示输入序列的查询、键和值，$h$表示头部的数量，$\text{head}_i$表示第$i$个头部的注意力表示，$W^O$是输出权重矩阵。
+
+在多头注意力机制中，每个头部都有自己的查询、键和值权重矩阵，通过线性变换将输入序列映射到不同的空间。然后，每个头部分别计算注意力权重，并将不同头部的注意力表示进行拼接，最后通过输出权重矩阵$W^O$融合多个头部的信息。
+
+多头注意力机制的优势在于可以提高模型对不同部分的关注度，从而更好地捕捉输入序列中的重要信息。通过并行计算多个头部的注意力表示，模型可以更好地处理长距离依赖关系和复杂的序列结构，提高模型的泛化能力和性能。除了在Transformer模型中应用多头注意力机制，它还被广泛应用于其他神经网络模型中，如BERT、GPT等。在自然语言处理、计算机视觉等领域，多头注意力机制已成为提高模型性能的重要技术之一。
+ 
+\subsection{编码器}
+Transformer模型是一种基于注意力机制的神经网络模型，由编码器和解码器组成，广泛应用于自然语言处理领域。编码器是Transformer模型的核心组件之一，它负责将输入序列转换成隐藏表示，提供给解码器进行生成输出序列。编码器由多个编码器层堆叠而成，每个编码器层内部包含多头自注意力机制和前馈神经网络。
+
+编码器的每一层都包含两个子层，分别是多头自注意力机制和前馈神经网络。下面分别介绍编码器每一层的计算过程：
+
+1. 多头自注意力机制（Multi-Head Self-Attention）：
+
+多头自注意力机制是编码器每一层的第一个子层，用于计算输入序列的注意力表示。具体的计算过程可以表示为以下公式：
+
+\begin{equation}
+	\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\end{equation}
+
+其中，$Q, K, V$分别表示输入序列的查询、键和值，$d_k$表示注意力头部的维度。在多头自注意力机制中，将输入序列分别映射到多个不同的查询、键和值空间，并通过计算每个头部的注意力权重来融合不同的信息。
+
+2. 前馈神经网络（Feed-Forward Neural Network）：
+
+前馈神经网络是编码器每一层的第二个子层，用于对注意力表示进行非线性变换。具体的计算过程可以表示为以下公式：
+
+\begin{equation}
+	\text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
+\end{equation}
+
+
+其中，$x$表示输入的注意力表示，$W_1, b_1, W_2, b_2$分别表示两个线性变换的权重和偏置。前馈神经网络通过两个线性变换和ReLU激活函数来对注意力表示进行非线性变换，从而提高模型的表征能力。
+
+在编码器中，每个编码器层都包含多头自注意力机制和前馈神经网络这两个子层，通过堆叠多个编码器层来构建整个编码器。每个编码器层都可以表示为以下公式：
+\begin{equation}
+	\text{EncoderLayer}(x) = \text{FFN}(\text{Attention}(x) + x)
+\end{equation}
+
+其中，$x$表示输入序列的隐藏表示，$\text{Attention}(x)$表示多头自注意力机制的输出，$\text{FFN}(\cdot)$表示前馈神经网络的输出。通过将多头自注意力机制的输出和原始输入序列相加，并通过前馈神经网络进行非线性变换，编码器可以逐层提取输入序列的特征表示。
+
+在Transformer模型的编码器中，除了多头自注意力机制和前馈神经网络之外，还包括残差连接和层归一化这两个重要的组件。残差连接和层归一化在每个编码器层中都起着重要的作用，有助于提高模型的训练稳定性和加速收敛。下面分别介绍这两个组件的作用和公式表达：
+
+
+3. 残差连接（Residual Connection）：
+
+残差连接是指将输入序列的隐藏表示与经过子层处理后的表示进行相加，从而形成残差连接。这样的设计有助于减轻梯度消失和梯度爆炸的问题，提高模型的训练效果。残差连接的计算公式可以表示为：
+
+\begin{equation}
+	\text{Residual}(x, \text{Sublayer}(x)) = x + \text{Sublayer}(x)
+\end{equation}
+
+
+其中，$x$表示输入序列的隐藏表示，$\text{Sublayer}(x)$表示经过子层处理后的表示。通过残差连接，编码器每一层的输出可以保留原始输入序列的信息，同时加入子层处理后的新信息，从而提高模型的表征能力。
+
+4. 层归一化（Layer Normalization）：
+
+层归一化是一种对神经网络中每一层输出进行归一化的技术，有助于加速模型的收敛和提高模型的泛化能力。在编码器的每个子层（包括多头自注意力机制和前馈神经网络）后都会应用层归一化操作。层归一化的计算公式可以表示为：
+\begin{equation}
+	\text{LayerNorm}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+\end{equation}
+
+
+其中，$x$表示输入序列的隐藏表示，$\gamma$和$\beta$分别表示学习到的缩放因子和偏置项，$\mu$和$\sigma$分别表示输入的均值和标准差，$\epsilon$是一个很小的常数，避免分母为零。层归一化通过对每一层的输出进行归一化，有助于减少内部协变量转移，提高模型的训练效果。
+
+\subsection{解码器}
+在Transformer模型中，解码器是用于生成目标序列的部分，与编码器相对应。解码器由多个解码器层组成，每个解码器层包含掩码多头自注意力机制、多头自注意力机制、层归一化、残差连接、前馈神经网络。此处重点介绍一下掩码多头自注意力机制（Masked Multi-Head Self-Attention）。
+
+在Transformer模型中，掩码多头自注意力机制是解码器中的关键组件之一，它允许解码器在生成目标序列时关注目标序列中的不同位置，并避免未来信息的干扰。掩码多头自注意力机制包含多个注意力头，每个头都学习不同的注意力权重，然后将它们合并起来以获得最终的注意力表示。
+
+在掩码多头自注意力机制中，给定一个输入序列$X = \{x_1, x_2, ..., x_n\}$，我们首先通过线性变换得到查询（Query）、键（Key）和值（Value）的表示：
+\begin{equation}
+Q = XW^Q, \ K = XW^K, \ V = XW^V
+\end{equation}
+其中$W^Q, W^K, W^V$是学习的权重矩阵。接下来，计算每个注意力头的注意力分数$A_i$：
+\begin{equation}
+A_i = \text{softmax}(\frac{Q_iK_i^T}{\sqrt{d_k}})
+\end{equation}
+其中$Q_i, K_i$表示第$i$个注意力头的查询和键，$d_k$是键的维度。然后，将每个注意力头的注意力分数与值相乘并加权求和，得到最终的输出表示：
+\begin{equation}
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O
+\end{equation}
+其中$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$表示第$i$个注意力头的输出，$W^O$是最终的输出权重矩阵。
+
+在掩码多头自注意力机制中，为了避免未来信息的泄露，会对注意力分数进行掩码操作。具体来说，在计算注意力分数时，会将当前位置之后的信息屏蔽掉，以确保模型只能使用当前位置之前的信息。在实际操作中是将输入矩阵加上一个上三角矩阵，该上三角矩阵元素为无穷大。这种掩码操作有助于解码器在生成目标序列时保持因果关系，不受未来信息的影响。
+
+通过掩码多头自注意力机制，解码器可以有效地关注目标序列中的不同部分，并根据输入序列和先前生成的部分序列调整生成的单词，从而实现对目标序列的准确生成。
+\subsection{应用于图像分类领域的Transformer}
+Transformer 技术最初是为了处理自然语言处理任务而设计的，但随着其出色的性能和可扩展性，人们开始将 Transformer 技术应用于其他领域，包括图像分类。虽然传统的卷积神经网络（CNN）在图像分类任务中表现出色，但 Transformer 在图像分类领域也展示出了很好的潜力。
+
+在图像分类领域应用 Transformer 技术的一个主要方法是 Vision Transformer（ViT）。ViT 将输入的图像像素视为序列化的数据，然后利用 Transformer 模型来对序列化的图像数据进行处理。ViT 的基本架构如下：
+
+1. 图像块划分：将输入图像分成固定大小的图像块（patches），每个图像块将被视为一个 token。
+2. 输入嵌入层：将每个图像块映射为一个向量表示。
+3. 位置编码：为每个图像块的向量表示添加位置编码，以保留图像块之间的位置信息。
+4. Transformer 编码器：使用 Transformer 模型对序列化的图像数据进行处理，包括多层的自注意力机制和前馈神经网络。
+5. 分类头：将 Transformer 的输出通过一个全连接层进行分类，得到图像的类别预测。
+
+ViT 在图像分类领域的应用有以下优点：
+- 可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。
+- 灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。
+- 泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。
+
+尽管 ViT 在图像分类领域取得了一定的成功，但也存在一些挑战，例如对大规模数据集的训练需要较长的时间，以及对输入图像块的划分方式和位置编码的设计需要一定的经验和调整。
+
+总的来说，Transformer 技术在图像分类领域的应用为研究人员提供了一种新的思路和工具，有望进一步推动图像分类任务的发展和性能提升。
+
+\section{常见的显著图解释方法}
+本节将会介绍五种著名的显著图解释方法，包括Grad-CAM、Grad-CAM++、Score-CAM、LRP和Transformer attribution。本节将会介绍这五种方法的具体理论依据，各自的应用条件和算法流程。 
 \subsection{Grad-CAM}\label{sub:gradcam}
 Grad-CAM（Gradient-weighted Class Activation Mapping）是一种用于解释深度学习模型的方法，它能够生成图像级别的重要区域热力图，从而帮助理解模型的决策过程。Grad-CAM的主要优点是它不需要对模型进行修改，可以应用于任何卷积神经网络模型，并且能够提供直观的可视化结果。
 
@@ -242,7 +373,7 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 \end{equation}
 同时它们满足相关性守恒的原则：
 \begin{equation}
-	\sum_j R_{j}^{u^{(n)}}+ \sum_k R_{k}^{v^{(n)}}=\sum_i R_{i}^{(n-1)}}
+	\sum_j R_{j}^{u^{(n)}}+ \sum_k R_{k}^{v^{(n)}}=\sum_i R_{i}^{(n-1)}
 	\label{eq:trans_sum}
 \end{equation}
 式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer Attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性:
@@ -257,14 +388,52 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 	\label{eq:trans_Rv}
 \end{equation}
 
-经过规范化的计算公式在各网络层满足$\sum_{i} R_{i}^{(n)}=1$，且完全满足相关性守恒的原则：
+经过规范化的计算公式在各网络层满足$\sum_{i} R_{i}^{(n)}=1$，且完全满足各层相关性守恒的原则即式\ref{eq:trans_conservation}所表示的含义。此外，每个张量的相关性和也遵循式\ref{eq:trans_restrict}的规则限制，该规则意思即第n层的每个张量的相关性和都不超过第n-1层所有相关性和。
 \begin{equation}
 	\sum_{j} \bar{R}_{j}^{u^{(n)}}+ \sum_{k} \bar{R}_{k}^{v^{(n)}} =\sum_{i} R_{i}^{(n-1)}
+	\label{eq:trans_conservation}
 \end{equation}
 
 \begin{equation}
 	0 \leq \sum_{j} \bar{R}_{j}^{u^{(n)}}, \sum_{k} \bar{R}_{k}^{v^{(n)}} \leq \sum_{i} R_{i}^{(n-1)}
+	\label{eq:trans_restrict}
 \end{equation}
+
+假设$M$是一个包含$B$个模块的基于Transformer的模型，每个模块包含自注意力层、跳跃连接（残差连接）、线性层和规范化层。该模型将输入转为$s$个token，并且每个token的尺寸大小是$d$，且包含一个特殊的token用来分类，该token记为[CLS]。模型$M$输出一个长度为$C$的分类概率向量$y$，使用分类token计算。自注意模块作用于嵌入维数$d$的一个子空间$d_h$上，$h$为“头”的个数，令$d_h=d$。自注意模块定义如下:
+\begin{equation}
+	\mathbf{A}^{(b)}=\operatorname{softmax}\left(\frac{\mathbf{Q}^{(b)} \cdot \mathbf{K}^{(b)^{T}}}{\sqrt{d_{h}}}\right) 
+	\label{eq:trans_ab}
+\end{equation}
+\begin{equation}
+	\mathbf{O}^{(b)}=\mathbf{A}^{(b)} \cdot \mathbf{V}^{(b)}
+	\label{eq:trans_ob}
+\end{equation}
+式\ref{eq:trans_ob}和\ref{eq:trans_ab}中，运算符$(\cdot)$表示矩阵乘法，$\mathbf{O}^{(b)} \in \mathbb{R}^{h\times s \times d_h}$是注意力模块$b$的输出。$\mathbf{Q}^{(b)},\mathbf{K}^{(b)},\mathbf{V}^{(b)} \in \mathbb{R}^{h\times s \times d_h}$分别表示Query，Key，Value向量。$\mathbf{A}^{(b)} \in \mathbb{R}^{h\times s \times s}$是模块$b$的注意力图，其中第$i$行表示输入中每个token相对于第$i$个token的相关性系数，由于式\ref{eq:trans_ab}中的归一化运算（softmax），$\mathbf{A}^{(b)}$中每个注意力头的每一行的值的和为1。
+
+按照相关性传播和梯度传播的过程，每个注意力图$\mathbf{V}^{(b)}$对于目标类别$c$都有其梯度矩阵$\nabla \mathbf{A}^{(b)}$和相关性矩阵$R^{(n_b)}$，其中$n_b$是模块$b$中对应于式\ref{eq:trans_ab}中softmax操作的那一层。
+
+经过上述介绍，Transfomer attribution的输出$\mathbf{C} \in \mathbb{R}^{h\times s \times s}$则由以下式子定义并计算得出：
+
+\begin{equation}
+	\bar{\mathbf{A}}^{(b)} = I + \mathbb{E}_h(\nabla \mathbf{A}^{(b)} \circ R^{(n_b)})^+
+	\label{eq:trans_ab_bar}
+\end{equation}
+
+\begin{equation}
+	 \mathbf{C} = \bar{\mathbf{A}}^{(1)} \cdot \bar{\mathbf{A}}^{(2)} \cdot ... \cdot \bar{\mathbf{A}}^{(B)}
+	\label{eq:trans_c}
+\end{equation}
+式\ref{eq:trans_ab_bar}表示单个模块输出计算。运算符$\circ$表示哈达玛积运算，$\mathbb{E}_h$表示取所有注意力头上的一个平均值，$+$表示只考虑正相关性的值，即对结果有正向贡献的值，并且考虑到跳跃连接的影响，为了防止计算结果出现全0，最后加上单位矩阵。
+
+如式\ref{eq:trans_c}所示，Transfomer attribution的最终解释输出是一个$s\times s$的矩阵$\mathbf{C}$，$s$表示经过输入到Transformer Encoder中的序列长度。$\mathbf{C}$中的每行对应于一个token对于其他token的相关性权重序列。由于是考虑基于Transformer的图像分类神经网络，因此只用考虑封装了分类信息的[CLS]的token的相关性序列，即$\mathbf{C}_{[CLS]} \in \mathbb{R}^s$对应于$\mathbf{C}$中的关于[CLS]token的那一行，因此该行中每个分数即是对每个输入token对输出分类的相关性分数。
+
+不考虑其他特殊token，比如[CLS]等，在实际的基于Transformer的图像分类神经网络ViT\textsuperscript{\cite{dosovitskiy2020image}}中，每一个输入token表示一个图像块，为了获得最终的显著图，则需要将获得相关性序列$\mathbf{C}_{[CLS]} \in \mathbb{R}^s$进行重新调整，调整为尺寸为$\sqrt{s-1}\times \sqrt{s-1}$的原始显著图，由于$s-1$的数值一般为图像块的个数，因此原始显著图分辨率较低，需要将其通过插值进行上采样为最终显著图。下图\ref{fig:trans1}展示了Transformer attribution计算过程，对应于式\ref{eq:trans_ab_bar}和式\ref{eq:trans_c}。
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=12cm]{fig/ch2/trans1.png}
+	\bicaption[\xiaosi Transformer attribution 计算过程]{\wuhao Transformer attribution 计算过程}{\wuhao Transformer attribution calculation procedure}
+	\label{fig:trans1}
+\end{figure}
 
 \section{本章小结}
 本章介绍了……
