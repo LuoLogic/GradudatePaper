@@ -36,22 +36,22 @@
 		配置                     & \multicolumn{1}{c}{详情}             \\ 
 		\hline
 		\multirow{9}{*}{服务端配置} & CPU：10-core Intel$^\circledR$ Xeon$^\circledR$ W-2255 CPU  \\
-		& 内存：128GB 64-bit DDR4 3700MHz       \\
-		& 显卡：NVIDIA RTX A5000 24GB           \\
-		& 操作系统：Ubuntu 20.04 LTS              \\
-		& Python版本：Python3.8                 \\
-		& 深度学习框架：Pytorch 1.10.1              \\
-		& 计算架构：CUDA 11.4                     \\
-		& 计算加速库：CUDNN 8.2.0                  \\
-		& AI性能：27.8 TFLOPS                   \\ 
+		& 内存:128GB 64-bit DDR4 3700MHz       \\
+		& 显卡:NVIDIA RTX A5000 24GB           \\
+		& 操作系统:Ubuntu 20.04 LTS              \\
+		& Python版本:Python3.8                 \\
+		& 深度学习框架:Pytorch 1.10.1              \\
+		& 计算架构:CUDA 11.4                     \\
+		& 计算加速库:CUDNN 8.2.0                  \\
+		& AI性能:27.8 TFLOPS                   \\ 
 		\hline
-		\multirow{7}{*}{开发端配置} & CPU：AMD Ryzen 5 4600U              \\
-		& 内存：16GB 64-bit LPDDR4 3200MHz      \\
-		& 操作系统：Windows11 家庭中文版               \\
-		& Python版本：Python3.8                 \\
-		& PyQt版本：PyQt5                       \\
-		& 数据库：MySQL 5.5                      \\
-		& 集成开发环境：PyCharm社区版2021.2.3            \\
+		\multirow{7}{*}{开发端配置} & CPU:AMD Ryzen 5 4600U              \\
+		& 内存:16GB 64-bit LPDDR4 3200MHz      \\
+		& 操作系统:Windows11 家庭中文版               \\
+		& Python版本:Python3.8                 \\
+		& PyQt版本:PyQt5                       \\
+		& 数据库:MySQL 5.5                      \\
+		& 集成开发环境:PyCharm社区版2021.2.3            \\
 		\hline
 	\end{tabular}
 \end{table}
@@ -72,7 +72,7 @@
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12 cm]{fig/ch5/sys.png}
+	\includegraphics[width=15cm]{fig/ch5/sys.png}
 	\bicaption[\xiaosi 系统架构设计图]{\wuhao 系统架构设计图}{\wuhao System Architecture Design Diagram}
 	\label{fig:sys}
 \end{figure}
@@ -83,7 +83,7 @@
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch5/function.png}
+	\includegraphics[width=15cm]{fig/ch5/function.png}
 	\bicaption[\xiaosi 系统模块设计图]{\wuhao 系统模块设计图}{\wuhao System Module Design Diagram}
 	\label{fig:function}
 \end{figure}
@@ -127,45 +127,46 @@
 1.图像分类模型的查看和导入
 
 图像分类模型的查看和导入界面如图\ref{fig:f1}所示，用户可以点击图中的导入模型按钮导入图像分类模型，此外用户还可以修改模型名称，通过输入模型编号删除个人的图像分类模型。
-\begin{figure}[h]
-	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f1.png}
-	\bicaption[\xiaosi 图像分类模型的查看和导入界面图]{\wuhao 图像分类模型的查看和导入界面图}{\wuhao View and import interface for image classification models}
-	\label{fig:f1}
-\end{figure}
 
 2.显著图解释方法的参数设置
 
 在图\ref{fig:f2}中展示了本文第3章提出显著图解释方法MSG-CAM的参数设置页面，用户通过选定图像分类模型，可以对该模型进行针对性的参数设置，包括选择要使用的卷积层等，每个显著图解释方法都有不同的设置页面。
 
-\begin{figure}[h]
-	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f2.png}
-	\bicaption[\xiaosi 显著图解释方法参数设置页面]{\wuhao 图像分类模型的查看和导入界面图}{\wuhao Saliency map method interpretation methods parameter setting page}
-	\label{fig:f2}
-\end{figure}
 
 3.用户密码修改和查看功能
 
 在图\ref{fig:f3}中展示了当前用户的数字账号和用户名等信息，用户密码默认以密文方式展示，用户需要点击查看密码按钮进行查看，同时在该页面上用户也可以修改密码。
+\begin{figure}[H]
+	\centering 
+	\includegraphics[width=15cm,height=9.5cm]{fig/ch5/f1.png}
+	\bicaption[\xiaosi 图像分类模型的查看和导入界面图]{\wuhao 图像分类模型的查看和导入界面图}{\wuhao View and import interface for image classification models}
+	\label{fig:f1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering 
+	\includegraphics[width=15cm,height=9.5cm]{fig/ch5/f2.png}
+	\bicaption[\xiaosi 显著图解释方法参数设置页面]{\wuhao 显著图解释方法参数设置页面}{\wuhao Saliency map method interpretation methods parameter setting page}
+	\label{fig:f2}
+\end{figure}
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f3.png}
+	\includegraphics[width=15cm,height=9.5cm]{fig/ch5/f3.png}
 	\bicaption[\xiaosi 用户密码修改和查看页面]{\wuhao 用户密码修改和查看页面}{\wuhao User password change and view page}
 	\label{fig:f3}
+\end{figure}
+\begin{figure}[H]
+	\centering 
+	\includegraphics[width=15cm,height=9.5cm]{fig/ch5/f4.png}
+	\bicaption[\xiaosi 显著图生成页面]{\wuhao 显著图生成页面}{\wuhao Saliency map generation page}
+	\label{fig:f4}
 \end{figure}
 
 4.显著图生成功能
 
 在页面截图\ref{fig:f4}中，展示了不同显著图解释方法生成的显著图对比情况，可以看到在选择的输入图片当中，生成了前5名预测类别和相应的概率，用户还可以选择是否应用增强算法来增强该显著图解释方法生成的显著图。
 
-\begin{figure}[h]
-	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f4.png}
-	\bicaption[\xiaosi 显著图生成页面]{\wuhao 显著图生成页面}{\wuhao Saliency map generation page}
-	\label{fig:f4}
-\end{figure}
 
 5.显著图分割功能
 
@@ -173,7 +174,7 @@
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f5.png}
+	\includegraphics[width=15cm]{fig/ch5/f5.png}
 	\bicaption[\xiaosi 显著图分割页面]{\wuhao 显著图分割页面}{\wuhao Saliency map segmentation page}
 	\label{fig:f5}
 \end{figure}
@@ -184,8 +185,8 @@
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch5/f6.png}
-	\bicaption[\xiaosi 实验评测页面]{\wuhao 实验评测页面}{\wuhao Experimental review page}
+	\includegraphics[width=15cm]{fig/ch5/f6.png}
+	\bicaption[\xiaosi 实验评测页面]{\wuhao 实验评测页面}{\wuhao Experimental test page}
 	\label{fig:f6}
 \end{figure}
 

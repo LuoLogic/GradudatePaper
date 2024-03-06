@@ -32,7 +32,7 @@
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/pipeline.png}
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	\bicaption[\xiaosi 显著图增强方法的流程图]{\wuhao 显著图增强方法的流程图}{\wuhao Pipeline of the saliency map enhancement approach}
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:pipeline}
 \end{figure}
@@ -147,43 +147,22 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 
 在本章扰动实验中使用的是ILSVRC 2012验证集，包含50000张图片，并且将该验证集中的图片尺寸调整为(3$\times$224$\times$224)，其中$3$是表示RGB颜色通道数量，像素值进行归一化调整，调整后的像素值范围是[0, 1]，最后使用Imagenet数据集的均值[0.229, 0.224, 0.225]和方差[0.485, 0.456, 0.406]对所有图片像素值进行标准化处理。在图像分割实验当中使用了ImageNet-Segmentation数据集，包含4276张图片，总共445个类别。
 \subsection{作为对照的显著图方法}
-为了验证本章提出的增强算法，一共选用了5种显著图解释方法来作为对照，本章提出的增强算法将应用在这5种显著图解释方法上来验证增强算法的有效性和可靠性。下面是这5种显著图解释方法的简短介绍和在实验当中的应用说明。
-
-1. Grad-CAM
-Grad-CAM (Gradient-weighted Class Activation Mapping) 是一种用于解释深度学习模型预测的技术，它可以生成显著图帮助理解模型是如何做出特定的预测的。Grad-CAM 是由Selvaraju等人在2017年提出的，它结合了梯度和全局平均池化的方法，能够生成图像中与模型预测结果相关的区域。在深度学习模型中，我们往往无法直观地理解模型是如何做出预测的，特别是在图像分类任务中。Grad-CAM 技术可以帮助我们理解模型是如何关注图像中的哪些区域来做出预测的。它可以生成热力图，显示出模型对于不同区域的关注程度，从而帮助我们理解模型的决策过程。
-
-Grad-CAM 技术的核心思想是结合梯度和全局平均池化来生成热力图。在传统的深度学习模型中，我们可以通过计算输入图像对于输出类别的梯度来理解模型的关注点。然而，这种方法只能提供整体的梯度信息，无法给出具体的区域信息。而全局平均池化可以将特征图的每个通道的特征值求平均，得到一个全局的特征向量。Grad-CAM 将这两种方法结合起来，通过对特征图的每个通道的梯度和全局平均池化的特征向量进行加权求和，生成与模型预测结果相关的区域。
-
-具体来说，Grad-CAM 技术的公式如下：
-\begin{equation}
-L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{ij})
-\end{equation}
-其中，$L_{Grad-CAM}^{c}$表示生成的显著图，$c$表示输出类别的索引，$y^c$表示模型对于类别$c$的得分，$A_{ij}$表示特征图的第i行第j列的特征值，$\frac{\partial y^c}{\partial A_{ij}}$表示模型对于类别$c$的得分对于特征图的第i行第j列的梯度。
-
-在本章的实验中，当Grad-CAM是应用在基于卷积神经网络的VGG19模型上时，生成特征图的卷积层是其最后一层卷积层，当Grad-CAM应用于基于Transformer结构的图像分类神经网络ViT时，是将最后一层注意力层的【CLS】标记视作指定的特征图，在反向传播过程中也是考虑该【CLS】标记维度上的梯度。
-
-
-2. LRP
-
-3. Partial LRP
-
-4. Transformer attribution
-
-5. Grad-CAM++
-
-5. Score-CAM
+为了验证本章提出的增强算法，一共选用了5种显著图解释方法来作为对照，本章提出的增强算法将应用在这5种显著图解释方法上来验证增强算法的有效性和可靠性。这5种显著图解释方法分别是：Grad-CAM，Grad-CAM++，LRP，Partial LRP和Transformer attribution。
 
 
 \subsection{增强方法相关参数}
 在本章实验当中，如无特别说明，所有输入图片的尺寸都是$3\times224\times224$，滑动窗口相关参数是：$start=(0,0), h=96, w=96, stride=32$，$start$是输入图片的左上角的像素作为起点 ，也是整个二维坐标系统的起点。低通滤波器的参数设置：$D_0=35$。
 
 
-\subsection{定性评估}
+\subsection{直观评估}
+为了直观评估本章的增强算法生成的显著图效果，本节从ILSVRC 2012验证集中随机选取图片进行了生成显著图的实验。如图\ref{fig:contrast1}和图\ref{fig:contrast2}所示，红色方框中的那列显著图是将本章的增强算法应用到同一种显著图生成方法上得到的。由于LRP算法直接在ViT上的应用效果很差，生成的显著图特征不明显，因此在LRP算法那列下叠加了输入图片作为参照。图\ref{fig:contrast1}和图\ref{fig:contrast2}中可以明显看到，在同一种显著图生成方法下，使用增强算法后的显著图相比没有使用增强算法的显著图呈现出对目标特征轮廓更加清晰的定位，无关的显著高亮区域也更少，能够给用户更加清晰的视觉解释。此外在两种不同架构的图像分类模型ViT和VGG19下，本章的增强算法都能够给出明显的视觉提升效果。例如图\ref{fig:contrast1}中第三行图片，该行的输入图片的类别是“蚯蚓”，在ViT模型下对Transformer attribution方法应用增强算法后生成显著图相比没有使用的增强算法的Transformer attribution方法能够更加清晰的描绘蚯蚓的轮廓特征，这种增强效果同样也反映在VGG19模型下的Grad-CAM方法和Grad-CAM++方法上，这两种方法生成显著图原本只能给出VGG19模型对蚯蚓的左上和右下部分比较关注，却无法得出具体的轮廓细节，在应用本章增强算法后的显著图泽给出了左上和右下明显的蚯蚓轮廓细节。
+
+此外，本节还选取了一些特殊的图片，这些图片中包含模型能够识别出的多个类别的物体。利用这些图片分别对不同的物体的生成显著图可以得到显著图解释算法是否有类别区分性。 如图\ref{fig:classSensitive}所示，红色方框中的仍然是应用本章增强算法后的显著图结果，在第一张输入图片中包含“猫”和“打印机”两个类别，分别对其应用显著图生成方法可以得到图像分类模型对两种类别在输入图片中各自关注的区域。可以看出本章的增强算法依然能够对不同类别的显著图进行增强，例如在第一张输入图片下对VGG19应用Grad-CAM方法，在“打印机”这个类别下的显著图仍然对“猫”这个类别的图片区域进行了高亮突出，在应用增强算法后的显著图则只对“打印机”这个类别的图片区域进行了凸显。这表明本章的增强算法可以对同一张图片中的不同类别的显著图进行增强，给出更加符合模型决策视觉解释。
 
 \subsection{扰动实验}
 优秀的显著图解释算法要能准确找到神经网络做出决策的关键特征，并且在生成的显著图中对每个像素赋予它与其对决策贡献相匹配的数值。扰动实验就是在这一标准上比较不同显著图解释算法的性能。我们分别进行正负扰动实验，正负实验测试采用两阶段设置。首先，使用预先训练好的网络提取 ImageNet验证集的可视化图像。其次，逐渐屏蔽掉输入图像的像素，并测量网络的平均top-1准确率。在正扰动实验中，像素从相关度最高的像素被屏蔽到最低的像素，而在负扰动中，像素从最低的像素被屏蔽到最高的像素。在正向扰动中，我们会看到性能急剧下降，这表明被遮挡的像素对分类得分很重要。在负扰动实验情况下，一个好的解释可以保持模型的准确性，同时去除与类别无关的像素。在这两种情况下，我们都测量了去除10\%-90\%像素时的曲线下面积（AUC）。这两项实验都可应用于图像分类模型预测结果类（Predicted）和真实标注类（Target）。在后一种情况下，特定类别的方法有望获得更好的性能，而与类别无关的方法则会在两种测试中表现出相似的性能。
 
-正负扰动实验和插入删除实验本质是一致的，都是根据显著图给出的像素权值将输入图片中的像素删除来记录得到相关类别索引的概率分数的变化。在正负扰动实验当中，也可以用$AUC(总体)$来综合评价扰动实验结果，它的计算方式是$AUC(总体)=AUC(负扰动)-AUC(正扰动)$。从表1中可以看出，我们的增强算法在overall指标上都取得明显提升，其中提升最为显著的是ViT模型的可视化算法GradCAM和LRP，这是因为他们对ViT的可视化能力很差，无法定位关键特征，经过我们的方法增强后，初步具有定位关键特征的能力。这表明我们的方法可以帮助这些可视化算法找到神经网络感兴趣的关键特征，这在不同的模型上都是成立的。
+正负扰动实验和插入删除实验本质是一致的，都是根据显著图给出的像素权值将输入图片中的像素删除来记录得到相关类别索引的概率分数的变化。在正负扰动实验当中，也可以用AUC(总体)来综合评价扰动实验结果，它的计算方式是AUC(总体)=AUC(负扰动)-AUC(正扰动)。从表1中可以看出，我们的增强算法在overall指标上都取得明显提升，其中提升最为显著的是ViT模型的可视化算法GradCAM和LRP，这是因为他们对ViT的可视化能力很差，无法定位关键特征，经过我们的方法增强后，初步具有定位关键特征的能力。这表明我们的方法可以帮助这些可视化算法找到神经网络感兴趣的关键特征，这在不同的模型上都是成立的。
 
 从表\ref{tab:pertubation}中可以看出，我们的增强方法显著提高了所有"总体"得分。应用于ViT的Grad-CAM 算法和LRP算法的改进最为明显，这两种算法以前缺乏准确可视化和定位重要特征的能力。使用增强方法后，这些方法能够识别重要特征。图\ref{fig:contrast1}就是一个例子，它表明无论底层网络结构如何，我们的方法都能帮助显著性方法识别神经网络感兴趣的重要特征。
 
@@ -192,7 +171,7 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 \begin{table}
 	\centering
 	\renewcommand{\arraystretch}{1.5}
-	\bicaption[\xiaosi 电流类型对效率的影响]{\wuhao 电流类型对效率的影响}{\wuhao Current type impact on efficiency}
+	\bicaption[\xiaosi 正负扰动实验数据对比]{\wuhao 正负扰动实验数据对比}{\wuhao Comparison of positive and negative perturbation experimental data}
 	\wuhao
 	\refstepcounter{table}
 	\label{tab:pertubation}
@@ -234,7 +213,7 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/Contrast.png}
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的直观对比结果]{\wuhao 增强方法应用于多种显著图解释方法上的直观对比结果}{\wuhao Intuitive comparison of enhancement methods applied to multiple saliency methods}
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:contrast1}
 \end{figure}
@@ -242,7 +221,7 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/Contrast1.png}
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的直观对比结果]{\wuhao 增强方法应用于多种显著图解释方法上的直观对比结果}{\wuhao Intuitive comparison of enhancement methods applied to multiple saliency methods}
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:contrast2}
 \end{figure}
@@ -250,7 +229,7 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/classSensitive.png}
-	\bicaption[\xiaosi 单张图片在不同方法下的插入删除实验曲线对比]{\wuhao 不同方法下的插入删除实验曲线对比图}{\wuhao Comparison of experimental curves of insertion and deletion under different methods}
+	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的类别区分对比]{\wuhao 增强方法应用于多种显著图解释方法上的类别区分对比}{\wuhao Visual Comparison of Class Distinctions of Enhancement Methods}
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:classSensitive}
 \end{figure}
@@ -265,6 +244,7 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 \bicaption[\xiaosi 显著图增强算法在图像分割的表现]{\wuhao 不同的显著图解释方法应用增强算法前后图像分割的表现}{\wuhao Performance of saliency map enhancement algorithms for image segmentation}
 \wuhao
 	\label{tab:seg}
+	\resizebox{\linewidth}{!}{
 	\begin{tabular}{cccccc} 
 		\hline
 		模型                     & 显著图解释方法                                  & 增强算法 & Pixel Acc(\%)      & mAP(\%)             & mIoU(\%)             \\ 
@@ -294,7 +274,9 @@ L_{Grad-CAM}^{c} = ReLU(\sum_{i}\sum_{j}\frac{\partial y^c}{\partial A_{ij}}A_{i
 		&                                          & \checkmark    & \textbf{78.60} & 85.42          & \textbf{60.58}  \\
 		\hline
 	\end{tabular}
+}
 \end{table}
 	
 \section{本章小结}
-	本章介绍了……
+本章首先分析当前显著图生成方法普遍存在的低分辨率问题的原因，然后本章详细介绍了一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法，该方法无须改变当前既有的显著图生成方法的内部计算流程，只需要关注输入的原始图片和输出的概率分数即可完成对当前既有显著图生成方法的增强。增强后的显著图具有更高的分辨率和更精准的特征定位。为了使得因滑动窗口导致的显著图不够平滑的问题，本章的方法还使用了低通滤波器对其平滑。最后本章设计了扰动实验，选取了多个显著图生成方法和两个不同架构的图像分类网络来验证本章增强方法的有效性，经过直观对比和数据对比，本章的显著图增强方法都取得了明显效果。 
+

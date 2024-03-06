@@ -21,7 +21,7 @@
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/conv1.png}
+	\includegraphics[width=15cm]{fig/ch2/conv1.png}
 	\bicaption[\xiaosi 标准卷积网络结构示意图]{\wuhao 标准卷积网络结构示意图}{\wuhao Illustration of the structure of a standard Convolutional Network}
 	\label{fig:conv1}
 \end{figure}
@@ -47,7 +47,7 @@ Transformer模型的核心思想是完全基于注意力机制来实现信息的
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/vit1.png}
+	\includegraphics[width=15cm]{fig/ch2/vit1.png}
 	\bicaption[\xiaosi Transformer结构示意图]{\wuhao Transformer结构示意图}{\wuhao Illustration of the structure of Transformer}
 	\label{fig:vit1}
 \end{figure}
@@ -152,32 +152,28 @@ Transformer 技术最初是为了处理自然语言处理任务而设计的，�
 
 在图像分类领域应用 Transformer 技术的一个主要方法是 Vision Transformer（ViT）。ViT 将输入的图像像素视为序列化的数据，然后利用 Transformer 模型来对序列化的图像数据进行处理。ViT 的基本架构如下：
 
-1. 图像块划分：将输入图像分成固定大小的图像块（patches），每个图像块将被视为一个 token。
-2. 输入嵌入层：将每个图像块映射为一个向量表示。
-3. 位置编码：为每个图像块的向量表示添加位置编码，以保留图像块之间的位置信息。
-4. Transformer 编码器：使用 Transformer 模型对序列化的图像数据进行处理，包括多层的自注意力机制和前馈神经网络。
-5. 分类头：将 Transformer 的输出通过一个全连接层进行分类，得到图像的类别预测。
+图像块划分：将输入图像分成固定大小的图像块（patches），每个图像块将被视为一个 token。
+输入嵌入层：将每个图像块映射为一个向量表示。
+位置编码：为每个图像块的向量表示添加位置编码，以保留图像块之间的位置信息。
+Transformer 编码器：使用 Transformer 模型对序列化的图像数据进行处理，包括多层的自注意力机制和前馈神经网络。
+分类头：将 Transformer 的输出通过一个全连接层进行分类，得到图像的类别预测。
 
-ViT 在图像分类领域的应用有以下优点：
-- 可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。
-- 灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。
-- 泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。
+ViT 在图像分类领域的应用有以下优点：可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。
 
-尽管 ViT 在图像分类领域取得了一定的成功，但也存在一些挑战，例如对大规模数据集的训练需要较长的时间，以及对输入图像块的划分方式和位置编码的设计需要一定的经验和调整。
-
-总的来说，Transformer 技术在图像分类领域的应用为研究人员提供了一种新的思路和工具，有望进一步推动图像分类任务的发展和性能提升。
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/vit2.png}
+	\includegraphics[width=15cm]{fig/ch2/vit2.png}
 	\bicaption[\xiaosi ViT结构示意图]{\wuhao ViT结构示意图}{\wuhao Illustration of the structure of ViT}
 	\label{fig:vit2}
 \end{figure}
+
+
 \section{常见的显著图解释方法}
 本节将会介绍五种著名的显著图解释方法，包括Grad-CAM、Grad-CAM++、Score-CAM、LRP和Transformer attribution。本节将会介绍这五种方法的具体理论依据，各自的应用条件和算法流程。 
 \subsection{Grad-CAM}\label{sub:gradcam}
 Grad-CAM（Gradient-weighted Class Activation Mapping）是一种用于解释深度学习模型的方法，它能够生成图像级别的重要区域热力图，从而帮助理解模型的决策过程。Grad-CAM的主要优点是它不需要对模型进行修改，可以应用于任何卷积神经网络模型，并且能够提供直观的可视化结果。
 
-Grad-CAM的核心思想是利用模型的梯度信息和特征图信息来推导出图像中哪些区域对于模型的分类决策最为关键。在深度学习模型中，每个卷积层都可以看作是对输入图像进行特征提取的过程，因此可以通过分析梯度信息来了解哪些特征对于模型的分类决策起到了关键作用。之前的一些研究已经断言，卷积神经网络的更深层表征捕获了更高层次的视觉结构\textsuperscript{\cite{bengio2013representation}\cite{mahendran2016visualizing  }}。此外，卷积层自然地保留了在全连接层中丢失的空间信息，因此Grad-CAM的作者认为最后一层卷积层在高级语义和详细空间信息之间有良好的表现。因此Grad-CAM使用流入卷积神经网络最后一个卷积层的梯度信息，为每个神经元分配一个特定感兴趣的决策的重要性值。虽然Grad-CAM的技术相当通用，因为它可以用来解释深度网络任何层的激活，但是一般来说它用来可视化解释输出层做的决定。
+Grad-CAM的核心思想是利用模型的梯度信息和特征图信息来推导出图像中哪些区域对于模型的分类决策最为关键。在深度学习模型中，每个卷积层都可以看作是对输入图像进行特征提取的过程，因此可以通过分析梯度信息来了解哪些特征对于模型的分类决策起到了关键作用。之前的一些研究已经断言，卷积神经网络的更深层表征捕获了更高层次的视觉结构\textsuperscript{\cite{bengio2013representation}\cite{mahendran2016visualizing}}。此外，卷积层自然地保留了在全连接层中丢失的空间信息，因此Grad-CAM的作者认为最后一层卷积层在高级语义和详细空间信息之间有良好的表现。因此Grad-CAM使用流入卷积神经网络最后一个卷积层的梯度信息，为每个神经元分配一个特定感兴趣的决策的重要性值。虽然Grad-CAM的技术相当通用，因为它可以用来解释深度网络任何层的激活，但是一般来说它用来可视化解释输出层做的决定。
 
 \begin{figure}[h]
 	\centering 
@@ -230,7 +226,7 @@ Grad-CAM++为了解决这一现象则没有直接将梯度矩阵直接全剧平�
 得到权重后，将权重$w_{k}^{c}$和其对应的特征图$A^k$相乘，然后所有特征图线性相加即可得到Grad-CAM++生成的最终显著图。计算过程和式\ref{eq:gradcam}一致。图\ref{fig:gradcampp2}中展示了CAM、Grad-CAM、Grad-CAM++的权重计算方式异同。
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/gradcampp2.png}
+	\includegraphics[width=15cm]{fig/ch2/gradcampp2.png}
 	\bicaption[\xiaosi CAM, Grad-CAM, Grad-CAM++的各自计算方式]{\wuhao CAM, Grad-CAM, Grad-CAM++的各自计算方式}{\wuhao Respective calculations for CAM, Grad-CAM, Grad-CAM++}
 	\label{fig:gradcampp2}
 \end{figure}
@@ -241,7 +237,7 @@ Grad-CAM和Grad-CAM++都依赖反向传播的梯度作为权重，但是这种�
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/scorecam1.png}
+	\includegraphics[width=15cm]{fig/ch2/scorecam1.png}
 	\bicaption[\xiaosi 特征图扰动示例]{\wuhao 特征图扰动示例}{\wuhao Example of feature map perturbation}
 	\label{fig:scorecam1}
 \end{figure}
@@ -303,7 +299,7 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=10cm]{fig/ch2/lrp2.png}
+	\includegraphics[width=15cm]{fig/ch2/lrp2.png}
 	\bicaption[\xiaosi 多层神经网络前向传播计算示例]{\wuhao 多层神经网络前向传播计算示例}{\wuhao VExample of a multilayer neural network forward propagation calculation}
 	\label{fig:lrp2}
 \end{figure}
@@ -313,14 +309,14 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 从以上前向传播的示例过程中可以推导出LRP相关性传播的基本过程，如图\ref{fig:lrp3}所示，左半部分是前向传播的过程，右半部分是LRP的相关性反向传播的过程，其中$R_i^{(l)}$表示第$l$层神经元$i$的相关性分数，$R_{i\leftrightarrow j}^{(l,l+1)}$表示$l+1$层的某个神经元$j$的相关性等于$l+1$层的神经元$j$给$l$层所有神经元的相关性之和。下面结合图\ref{fig:lrp4}进行详细说明。
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/lrp3.png}
+	\includegraphics[width=15cm]{fig/ch2/lrp3.png}
 	\bicaption[\xiaosi 多层神经网络下前向传播和层间相关性传播过程]{\wuhao 多层神经网络下前向传播和层间相关性传播过程}{\wuhao Forward propagation and LRP processes under multilayer neural networks}
 	\label{fig:lrp3}
 \end{figure}
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/lrp4.png}
+	\includegraphics[width=15cm]{fig/ch2/lrp4.png}
 	\bicaption[\xiaosi 层间相关性传播分配相关性分数的例子]{\wuhao 层间相关性传播分配相关性分数的例子}{\wuhao Example of LRP assigning relevance scores}
 	\label{fig:lrp4}
 \end{figure}
@@ -435,13 +431,13 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 不考虑其他特殊token，比如[CLS]等，在实际的基于Transformer的图像分类神经网络ViT\textsuperscript{\cite{dosovitskiy2020image}}中，每一个输入token表示一个图像块，为了获得最终的显著图，则需要将获得相关性序列$\mathbf{C}_{[CLS]} \in \mathbb{R}^s$进行重新调整，调整为尺寸为$\sqrt{s-1}\times \sqrt{s-1}$的原始显著图，由于$s-1$的数值一般为图像块的个数，因此原始显著图分辨率较低，需要将其通过插值进行上采样为最终显著图。下图\ref{fig:trans1}展示了Transformer attribution计算过程，对应于式\ref{eq:trans_ab_bar}和式\ref{eq:trans_c}。
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=12cm]{fig/ch2/trans1.png}
+	\includegraphics[width=15cm]{fig/ch2/trans1.png}
 	\bicaption[\xiaosi Transformer attribution 计算过程]{\wuhao Transformer attribution 计算过程}{\wuhao Transformer attribution calculation procedure}
 	\label{fig:trans1}
 \end{figure}
 
 \section{本章小结}
-本章介绍了……
+本章首先简要介绍了卷积神经网络和Transformer架构的基础原理，它们也是当前图像分类神经网络的两种主要基础架构。然后本章重点介绍了当前5种比较著名的显著图解释方法的背后原理和显著图生成的计算过程，这5种方法分别是Grad-CAM，Grad-CAM++，Score-CAM，LRP和Transformer Attribution。这5种显著图解释方法也是第3章和第4章实验对比的其中一些方法。
 
 
 
