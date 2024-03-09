@@ -2,18 +2,17 @@
 
 
 
-\chapter{一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法}
+\chapter{基于二维滑动窗口的图像分类神经网络显著图增强方法}
 \thispagestyle{others}
 \pagestyle{others}
 \xiaosi
 
-\section{本章引言}
 
 
 
 \section{问题描述和研究思路}
 
-显著图分辨率低，包含特征细节信息少仍然是当前绝大多数显著图解释方法的一个弊病。从基于卷积神经网络的图像分类神经网络来看，针对这一网络的显著图解释方法通常是从卷积神经网络的最后一层卷积层提取特征图。这一层包含了丰富的类别特征信息，然后通过加权组合这些特征图来生成最终的显著图。然而，由于卷积神经网络的结构特性，最后一层卷积层会输出多个通道的低分辨率特征图。因此，无论怎样组合这些特征图，最终得到的显著图分辨率仅与最后一层卷积层的单一通道特征图相当。当然，为了建立显著图与原始输入图片的特征对应关系，通常会对原始输入图片进行分辨率放大。这一过程通常采用双线性插值算法，但这并不意味着显著图中有效信息的增加。另外，当前的一些研究者也在积极探索对基于Tansformer架构的图像分类模型进行显著图解释，Chefer等人\textsuperscript{\cite{chefer2021transformer}}在近年发布了针对这一方面的研究，他们针对Transformer的结构的制定了新的层间相关性反向传播规则，解决了传播过程中遇到的注意层和跳跃连接时的挑战。他们将每一个Transformer块的梯度和其对应的相关性分数结合解决了Transformer在图像分类领域的显著图可视化问题。但是即便如此他们针对Transformer提出的方法仍然会面临低分辨率的困扰，究其原因是Transformer结构的图像分类神经网络反向传播过程中计算并生成显著图时也只能受限于token的尺寸，无法生成包含信息量更多的显著图。图\ref{fig:motivation}描述了这一问题，无论针对卷积神经网络的基于类激活映射图的方法还是针对Transformer架构提出的Transformer attribution方法（即Chefer等人提出的方法）都只能生成分辨率较低的原始显著图，之后通过上采样获得最终的显著图。
+显著图分辨率低，包含特征细节信息少仍然是当前绝大多数显著图解释方法的一个弊病。从基于卷积神经网络的图像分类神经网络来看，针对这一网络的显著图解释方法通常是从卷积神经网络的最后一层卷积层提取特征图。这一层包含了丰富的类别特征信息，然后通过加权组合这些特征图来生成最终的显著图。然而，由于卷积神经网络的结构特性，最后一层卷积层会输出多个通道的低分辨率特征图。因此，无论怎样组合这些特征图，最终得到的显著图分辨率仅与最后一层卷积层的单一通道特征图相当。当然，为了建立显著图与原始输入图片的特征对应关系，通常会对原始输入图片进行分辨率放大。这一过程通常采用双线性插值算法，但这并不意味着显著图中有效信息的增加。另外，当前的一些研究者也在积极探索对基于Tansformer架构的图像分类模型进行显著图解释，H. Chefer等人\textsuperscript{\cite{chefer2021transformer}}在近年发布了针对这一方面的研究，他们针对Transformer的结构的制定了新的层间相关性反向传播规则，解决了传播过程中遇到的注意层和跳跃连接时的挑战。他们将每一个Transformer块的梯度和其对应的相关性分数结合解决了Transformer在图像分类领域的显著图可视化问题。但是即便如此他们针对Transformer提出的方法仍然会面临低分辨率的困扰，究其原因是Transformer结构的图像分类神经网络反向传播过程中计算并生成显著图时也只能受限于token的尺寸，无法生成包含信息量更多的显著图。图\ref{fig:motivation}描述了这一问题，无论针对卷积神经网络的基于类激活映射图的方法还是针对Transformer架构提出的Transformer attribution方法（即Chefer等人提出的方法）都只能生成分辨率较低的原始显著图，之后通过上采样获得最终的显著图。
 
 \begin{figure}[h]
 	\centering 
@@ -26,8 +25,8 @@
 因此为了解决上述的问题，本章提出了一种通用的显著图增强方法，可以直接应用在多数可视化算法上。该方法使用固定尺寸的滑动窗口对输入图片中的所有局部区域上采样到输入图片尺寸，然后将结果输入到选定的可视化算法中得到所有图片的针对特定类别的显著图和概率分数，最后将显著图下采样到输入图片对应位置上的窗口中，并乘以概率分数，即可得到具备更多细节的显著图。将该方法应用在不同的可视化算法上，这些算法基于不同架构的网络，无论是量化指标还是直观评测都显示出我们的方法使这些可视化算法得到了明显提升，从而证明本章提出的方法的有效性和可靠性。
 
 
-\section{一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法}
-为了解决当前可视化算法存在的分辨率低，特征模糊，噪声多的问题，我们的方法在输入图片上应用了滑动窗口，通过采集并融合不同窗口图片的可视化信息，让可视化算法加强对输入图片中的局部信息的感知。
+\section{基于二维滑动窗口的图像分类神经网络显著图增强方法}
+为了解决当前可视化算法存在的分辨率低，特征模糊，噪声多的问题，我们的方法在输入图片上应用了滑动窗口，通过采集并融合不同窗口图片的可视化信息，让可视化算法加强对输入图片中的局部信息的感知。具体的算法流程图展示在图\ref{fig:pipeline}中。
 
 \begin{figure}[h]
 	\centering 
@@ -38,7 +37,7 @@
 \end{figure}
 
 \subsection{获取窗口图片集合}
-设定原始输入图片$I_0 \in \mathbb{R}^{3\times H_0 \times W_0}$，使用一个二维滑动窗口函数$\psi(I, start, h, w, stride)$来从输入图片$I_0$中提取窗口图片，函数$\psi(I, start, h, w, stride)$中$I$就是函数所应用的输入图片，$start$表示滑动窗口在二维坐标系统的起点，一般设定在输入图片的左上角位置，$h$和$w$表示窗口像素尺寸且窗口尺寸应该小于输入图片尺寸，$stride$表示每次滑动窗口移动的像素个数，窗口从左上角起点开始移动，只能在图片区域内移动，即滑动窗口应该向右或者向左移动。每次移动则将窗口内的图片区域进行复制并保存，移动完毕后即可得到关于窗口图片的集合，单张窗口图片的获取的公式如下：
+设定原始输入图片$I_0 \in \mathbb{R}^{3\times H_0 \times W_0}$，使用一个二维滑动窗口函数$\psi$来从输入图片$I_0$中提取窗口图片，函数$\psi(I, start, h, w, stride)$中$I$就是函数所应用的输入图片，$start$表示滑动窗口在二维坐标系统的起点，一般设定在输入图片的左上角位置，$h$和$w$表示窗口像素尺寸且窗口尺寸应该小于输入图片尺寸，$stride$表示每次滑动窗口移动的像素个数，窗口从左上角起点开始移动，只能在图片区域内移动，即滑动窗口应该向右或者向左移动。每次移动则将窗口内的图片区域进行复制并保存，移动完毕后即可得到关于窗口图片的集合，单张窗口图片的获取的公式如下：
 \begin{equation}
 	p_{k_n}=\psi(I_0,start,h,w,stride)
 	\label{pkn}
@@ -159,57 +158,6 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 
 此外，本节还选取了一些特殊的图片，这些图片中包含模型能够识别出的多个类别的物体。利用这些图片分别对不同的物体的生成显著图可以得到显著图解释算法是否有类别区分性。 如图\ref{fig:classSensitive}所示，红色方框中的仍然是应用本章增强算法后的显著图结果，在第一张输入图片中包含“猫”和“打印机”两个类别，分别对其应用显著图生成方法可以得到图像分类模型对两种类别在输入图片中各自关注的区域。可以看出本章的增强算法依然能够对不同类别的显著图进行增强，例如在第一张输入图片下对VGG19应用Grad-CAM方法，在“打印机”这个类别下的显著图仍然对“猫”这个类别的图片区域进行了高亮突出，在应用增强算法后的显著图则只对“打印机”这个类别的图片区域进行了凸显。这表明本章的增强算法可以对同一张图片中的不同类别的显著图进行增强，给出更加符合模型决策视觉解释。
 
-\subsection{扰动实验}
-优秀的显著图解释算法要能准确找到神经网络做出决策的关键特征，并且在生成的显著图中对每个像素赋予它与其对决策贡献相匹配的数值。扰动实验就是在这一标准上比较不同显著图解释算法的性能。我们分别进行正负扰动实验，正负实验测试采用两阶段设置。首先，使用预先训练好的网络提取 ImageNet验证集的可视化图像。其次，逐渐屏蔽掉输入图像的像素，并测量网络的平均top-1准确率。在正扰动实验中，像素从相关度最高的像素被屏蔽到最低的像素，而在负扰动中，像素从最低的像素被屏蔽到最高的像素。在正向扰动中，我们会看到性能急剧下降，这表明被遮挡的像素对分类得分很重要。在负扰动实验情况下，一个好的解释可以保持模型的准确性，同时去除与类别无关的像素。在这两种情况下，我们都测量了去除10\%-90\%像素时的曲线下面积（AUC）。这两项实验都可应用于图像分类模型预测结果类（Predicted）和真实标注类（Target）。在后一种情况下，特定类别的方法有望获得更好的性能，而与类别无关的方法则会在两种测试中表现出相似的性能。
-
-正负扰动实验和插入删除实验本质是一致的，都是根据显著图给出的像素权值将输入图片中的像素删除来记录得到相关类别索引的概率分数的变化。在正负扰动实验当中，也可以用AUC(总体)来综合评价扰动实验结果，它的计算方式是AUC(总体)=AUC(负扰动)-AUC(正扰动)。从表1中可以看出，我们的增强算法在overall指标上都取得明显提升，其中提升最为显著的是ViT模型的可视化算法GradCAM和LRP，这是因为他们对ViT的可视化能力很差，无法定位关键特征，经过我们的方法增强后，初步具有定位关键特征的能力。这表明我们的方法可以帮助这些可视化算法找到神经网络感兴趣的关键特征，这在不同的模型上都是成立的。
-
-从表\ref{tab:pertubation}中可以看出，我们的增强方法显著提高了所有"总体"得分。应用于ViT的Grad-CAM 算法和LRP算法的改进最为明显，这两种算法以前缺乏准确可视化和定位重要特征的能力。使用增强方法后，这些方法能够识别重要特征。图\ref{fig:contrast1}就是一个例子，它表明无论底层网络结构如何，我们的方法都能帮助显著性方法识别神经网络感兴趣的重要特征。
-
-
-
-\begin{table}
-	\centering
-	\renewcommand{\arraystretch}{1.5}
-	\bicaption[\xiaosi 正负扰动实验数据对比]{\wuhao 正负扰动实验数据对比}{\wuhao Comparison of positive and negative perturbation experimental data}
-	\wuhao
-	\refstepcounter{table}
-	\label{tab:pertubation}
-	\resizebox{\linewidth}{!}{
-\begin{tabular}{ccccccccc} 
-	\hline
-	\multirow{2}{*}{模型}    & \multirow{2}{*}{显著图解释方法}                 & \multirow{2}{*}{增强算法} & \multicolumn{3}{c}{Predicted}                    & \multicolumn{3}{c}{Target}                        \\ 
-	\cline{4-9}
-	&                                          &                       & 负扰动            & 正扰动            & 总体             & 负扰动            & 正扰动            & 总体              \\ 
-	\hline
-	\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &                       & 41.52          & 34.06          & 7.46           & 42.02          & 33.56          & 8.46            \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{47.54} & \textbf{26.99} & \textbf{20.55} & \textbf{48.46} & \textbf{26.49} & \textbf{21.97}  \\ 
-	\cline{2-9}
-	& \multirow{2}{*}{LRP}                     &                       & 43.49          & 41.94          & 1.55           & 43.49          & 41.94          & 1.56            \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{62.69} & \textbf{27.51} & \textbf{35.18} & \textbf{64.76} & \textbf{26.45} & \textbf{38.31}  \\ 
-	\cline{2-9}
-	& \multirow{2}{*}{partial LRP}             &                       & 50.49          & 19.64          & 30.85          & 50.49          & 19.64          & 30.85           \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{55.57} & \textbf{18.45} & \textbf{37.12} & \textbf{56.13} & \textbf{18.14} & \textbf{37.99}  \\ 
-	\cline{2-9}
-	& \multirow{2}{*}{Transformer attribution} &                       & 54.14          & 17.03          & 37.11          & 55.04          & \textbf{16.04} & 39.00           \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{57.57} & \textbf{16.93} & \textbf{40.64} & \textbf{58.83} & 16.25          & \textbf{42.58}  \\ 
-	\hline
-	\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &                       & 38.08          & 12.15          & 25.93          & 39.04          & 11.71          & 27.33           \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{39.07} & \textbf{10.20} & \textbf{28.87} & \textbf{40.09} & \textbf{9.78}  & \textbf{30.31}  \\ 
-	\cline{2-9}
-	& \multirow{2}{*}{GradCAM++}               &                       & 40.50          & 11.79          & 28.71          & 40.81          & 11.61          & 29.20           \\ 
-	\cline{4-9}
-	&                                          & \checkmark                     & \textbf{40.95} & \textbf{10.09} & \textbf{30.86} & \textbf{41.49} & \textbf{9.81}  & \textbf{31.68}  \\
-	\hline
-\end{tabular}
-}
-\end{table}
-
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/Contrast.png}
@@ -229,53 +177,108 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/classSensitive.png}
-	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的类别区分对比]{\wuhao 增强方法应用于多种显著图解释方法上的类别区分对比}{\wuhao Visual Comparison of Class Distinctions of Enhancement Methods}
+	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的类别区分对比]{\wuhao 增强方法应用于多种显著图解释方法上的类别区分对比}{\wuhao Visual comparison of class distinctions of enhancement methods}
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:classSensitive}
 \end{figure}
-	
+\begin{table}
+	\centering
+	\renewcommand{\arraystretch}{1.5}
+	\bicaption[\xiaosi 正负扰动实验数据对比]{\wuhao 正负扰动实验数据对比}{\wuhao Comparison of positive and negative perturbation experimental data}
+	\wuhao
+	\refstepcounter{table}
+	\label{tab:pertubation}
+	\resizebox{\linewidth}{!}{
+		\begin{tabular}{ccccccccc} 
+			\hline
+			\multirow{2}{*}{模型}    & \multirow{2}{*}{显著图解释方法}                 & \multirow{2}{*}{增强算法} & \multicolumn{3}{c}{Predicted}                    & \multicolumn{3}{c}{Target}                        \\ 
+			\cline{4-9}
+			&                                          &                       & 负扰动            & 正扰动            & 总体             & 负扰动            & 正扰动            & 总体              \\ 
+			\hline
+			\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &                       & 41.52          & 34.06          & 7.46           & 42.02          & 33.56          & 8.46            \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{47.54} & \textbf{26.99} & \textbf{20.55} & \textbf{48.46} & \textbf{26.49} & \textbf{21.97}  \\ 
+			\cline{2-9}
+			& \multirow{2}{*}{LRP}                     &                       & 43.49          & 41.94          & 1.55           & 43.49          & 41.94          & 1.56            \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{62.69} & \textbf{27.51} & \textbf{35.18} & \textbf{64.76} & \textbf{26.45} & \textbf{38.31}  \\ 
+			\cline{2-9}
+			& \multirow{2}{*}{partial LRP}             &                       & 50.49          & 19.64          & 30.85          & 50.49          & 19.64          & 30.85           \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{55.57} & \textbf{18.45} & \textbf{37.12} & \textbf{56.13} & \textbf{18.14} & \textbf{37.99}  \\ 
+			\cline{2-9}
+			& \multirow{2}{*}{Transformer attribution} &                       & 54.14          & 17.03          & 37.11          & 55.04          & \textbf{16.04} & 39.00           \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{57.57} & \textbf{16.93} & \textbf{40.64} & \textbf{58.83} & 16.25          & \textbf{42.58}  \\ 
+			\hline
+			\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &                       & 38.08          & 12.15          & 25.93          & 39.04          & 11.71          & 27.33           \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{39.07} & \textbf{10.20} & \textbf{28.87} & \textbf{40.09} & \textbf{9.78}  & \textbf{30.31}  \\ 
+			\cline{2-9}
+			& \multirow{2}{*}{GradCAM++}               &                       & 40.50          & 11.79          & 28.71          & 40.81          & 11.61          & 29.20           \\ 
+			\cline{4-9}
+			&                                          & \checkmark                     & \textbf{40.95} & \textbf{10.09} & \textbf{30.86} & \textbf{41.49} & \textbf{9.81}  & \textbf{31.68}  \\
+			\hline
+		\end{tabular}
+	}
+\end{table}
+\subsection{扰动实验}
+优秀的显著图解释算法要能准确找到神经网络做出决策的关键特征，并且在生成的显著图中对每个像素赋予它与其对决策贡献相匹配的数值。扰动实验就是在这一标准上比较不同显著图解释算法的性能。我们分别进行正负扰动实验，正负实验测试采用两阶段设置。首先，使用预先训练好的网络提取 ImageNet验证集的可视化图像。其次，逐渐屏蔽掉输入图像的像素，并测量网络的平均top-1准确率。在正扰动实验中，像素从相关度最高的像素被屏蔽到最低的像素，而在负扰动中，像素从最低的像素被屏蔽到最高的像素。在正向扰动中，我们会看到性能急剧下降，这表明被遮挡的像素对分类得分很重要。在负扰动实验情况下，一个好的解释可以保持模型的准确性，同时去除与类别无关的像素。在这两种情况下，我们都测量了去除10\%-90\%像素时的曲线下面积（AUC）。这两项实验都可应用于图像分类模型预测结果类（Predicted）和真实标注类（Target）。在后一种情况下，特定类别的方法有望获得更好的性能，而与类别无关的方法则会在两种测试中表现出相似的性能。
+
+正负扰动实验和插入删除实验本质是一致的，都是根据显著图给出的像素权值将输入图片中的像素删除来记录得到相关类别索引的概率分数的变化。在正负扰动实验当中，也可以用AUC(总体)来综合评价扰动实验结果，它的计算方式是AUC(总体)=AUC(负扰动)-AUC(正扰动)。从表1中可以看出，我们的增强算法在overall指标上都取得明显提升，其中提升最为显著的是ViT模型的可视化算法GradCAM和LRP，这是因为他们对ViT的可视化能力很差，无法定位关键特征，经过我们的方法增强后，初步具有定位关键特征的能力。这表明我们的方法可以帮助这些可视化算法找到神经网络感兴趣的关键特征，这在不同的模型上都是成立的。
+
+从表\ref{tab:pertubation}中可以看出，我们的增强方法显著提高了所有"总体"得分。应用于ViT的Grad-CAM 算法和LRP算法的改进最为明显，这两种算法以前缺乏准确可视化和定位重要特征的能力。使用增强方法后，这些方法能够识别重要特征。图\ref{fig:contrast1}就是一个例子，它表明无论底层网络结构如何，我们的方法都能帮助显著性方法识别神经网络感兴趣的重要特征。
+
+
+
+
+
+
+\begin{table}
+	\renewcommand{\arraystretch}{1.5}
+	\centering
+	\bicaption[\xiaosi 显著图增强算法在图像分割的表现]{\wuhao 不同的显著图解释方法应用增强算法前后图像分割的表现}{\wuhao Performance of saliency map enhancement algorithms for image segmentation}
+	\wuhao
+	\label{tab:seg}
+	\resizebox{\linewidth}{!}{
+		\begin{tabular}{cccccc} 
+			\hline
+			模型                     & 显著图解释方法                                  & 增强算法 & Pixel Acc(\%)      & mAP(\%)             & mIoU(\%)             \\ 
+			\hline
+			\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &      & 64.44          & 71.60          & 40.82           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{70.33} & \textbf{77.02} & \textbf{47.81}  \\ 
+			\cline{2-6}
+			& \multirow{2}{*}{LRP}                     &      & 51.09          & 55.68          & 32.89           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{69.34} & \textbf{80.88} & \textbf{50.37}  \\ 
+			\cline{2-6}
+			& \multirow{2}{*}{partial LRP}             &      & 76.31          & 84.67          & 57.94           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{80.42} & \textbf{85.83} & \textbf{62.85}  \\ 
+			\cline{2-6}
+			& \multirow{2}{*}{Transformer attribution} &      & 79.74          & 86.03          & 62.01           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{81.90} & \textbf{86.56} & \textbf{64.56}  \\ 
+			\hline
+			\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &      & 69.03          & 76.76          & 48.99           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{73.78} & \textbf{79.99} & \textbf{53.82}  \\ 
+			\cline{2-6}
+			& \multirow{2}{*}{GradCAM++}               &      & 76.77          & \textbf{85.48} & 58.89           \\ 
+			\cline{3-6}
+			&                                          & \checkmark    & \textbf{78.60} & 85.42          & \textbf{60.58}  \\
+			\hline
+		\end{tabular}
+	}
+\end{table}
+
+
 \subsection{图像分割实验}
 图像分割实验将每张显著图视为图像的软分割，并将其与ImageNet-Segmentation数据集的真实标注的分割进行比较。在分割实验中，计算每个突出图中像素的平均值，并将突出图中高于平均值的像素设为 1，其余像素设为 0。本节使用语义分割中常用的三个指标来衡量性能：像素精确度（Pixel Accuracy）、平均交叉重叠率（mIoU）和平均精确度（mAP），其中mIoU即对每张显著图进行平均值阈值化处理后获得的准确度，mAP是使用不含阈值的显著图计算得出的。
 
-分割结果如表\ref{tab:seg}所示。从中可以看出，我们的增强方法在所列的像素精确度（Pixel Accuracy）、平均交叉重叠率（mIoU）和平均精确度（mAP）关键指标,上都有显著的改进，甚至 Transformer attribution~\cite{chefer2021transformer} 也能获得不可忽略的改进，这是目前在基于Transformer架构上的图像分类神经网络ViT模型上表现最好的方法。这表明，本章的增强方法可以帮助提高当前显著图解释方法在分割领域的性能。
-\begin{table}
-\renewcommand{\arraystretch}{1.5}
-\centering
-\bicaption[\xiaosi 显著图增强算法在图像分割的表现]{\wuhao 不同的显著图解释方法应用增强算法前后图像分割的表现}{\wuhao Performance of saliency map enhancement algorithms for image segmentation}
-\wuhao
-	\label{tab:seg}
-	\resizebox{\linewidth}{!}{
-	\begin{tabular}{cccccc} 
-		\hline
-		模型                     & 显著图解释方法                                  & 增强算法 & Pixel Acc(\%)      & mAP(\%)             & mIoU(\%)             \\ 
-		\hline
-		\multirow{8}{*}{ViT}   & \multirow{2}{*}{GradCAM}                 &      & 64.44          & 71.60          & 40.82           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{70.33} & \textbf{77.02} & \textbf{47.81}  \\ 
-		\cline{2-6}
-		& \multirow{2}{*}{LRP}                     &      & 51.09          & 55.68          & 32.89           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{69.34} & \textbf{80.88} & \textbf{50.37}  \\ 
-		\cline{2-6}
-		& \multirow{2}{*}{partial LRP}             &      & 76.31          & 84.67          & 57.94           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{80.42} & \textbf{85.83} & \textbf{62.85}  \\ 
-		\cline{2-6}
-		& \multirow{2}{*}{Transformer attribution} &      & 79.74          & 86.03          & 62.01           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{81.90} & \textbf{86.56} & \textbf{64.56}  \\ 
-		\hline
-		\multirow{4}{*}{VGG19} & \multirow{2}{*}{GradCAM}                 &      & 69.03          & 76.76          & 48.99           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{73.78} & \textbf{79.99} & \textbf{53.82}  \\ 
-		\cline{2-6}
-		& \multirow{2}{*}{GradCAM++}               &      & 76.77          & \textbf{85.48} & 58.89           \\ 
-		\cline{3-6}
-		&                                          & \checkmark    & \textbf{78.60} & 85.42          & \textbf{60.58}  \\
-		\hline
-	\end{tabular}
-}
-\end{table}
+分割结果如表\ref{tab:seg}所示。从中可以看出，我们的增强方法在所列的像素精确度（Pixel Accuracy）、平均交叉重叠率（mIoU）和平均精确度（mAP）关键指标,上都有显著的改进，甚至 Transformer attribution\textsuperscript{\cite{chefer2021transformer}} 也能获得不可忽略的改进，这是目前在基于Transformer架构上的图像分类神经网络ViT模型上表现最好的方法。这表明，本章的增强方法可以帮助提高当前显著图解释方法在分割领域的性能。
+
 	
 \section{本章小结}
 本章首先分析当前显著图生成方法普遍存在的低分辨率问题的原因，然后本章详细介绍了一种通用的基于二维滑动窗口和放大的图像分类神经网络显著图解释增强方法，该方法无须改变当前既有的显著图生成方法的内部计算流程，只需要关注输入的原始图片和输出的概率分数即可完成对当前既有显著图生成方法的增强。增强后的显著图具有更高的分辨率和更精准的特征定位。为了使得因滑动窗口导致的显著图不够平滑的问题，本章的方法还使用了低通滤波器对其平滑。最后本章设计了扰动实验，选取了多个显著图生成方法和两个不同架构的图像分类网络来验证本章增强方法的有效性，经过直观对比和数据对比，本章的显著图增强方法都取得了明显效果。 
