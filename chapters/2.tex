@@ -14,10 +14,10 @@
 %一些早期的研究单纯通过反向传播的梯度差异来生成显著图描述图像分类模型在输入图片中感兴趣的区域，后来
 深度神经网络的可解释方面的研究是在最近十年才逐渐兴起并收到关注的，在计算机视觉领域，基于深度卷积神经网络的图像分类模型是较早受到研究的，研究者试图从参数量庞大的深度卷积神经网络中找到输出结果和在输入图片中对应的依据。也有一些研究者将图像分类神经网络看作是一个黑盒，通过各种手段扰动输入图片观测输出结果变化来生成显著图。随着Transformer架构异军突起，基于Transformer架构的图像分类神经网络的可解释性也逐渐受到关注和研究，也已经由研究者设计了针对Transformer架构的反向传播归因机制，该机制在计算机视觉领域也能生成效果良好的显著图。上述的深度神经网络可解释研究生成的显著图较少关注显著图生成的质量和对关键特征的定位能力，本文的显著图解释研究专注于对显著图生成质量的改善和相关显著图解释算法的改善。
 
-接下来本章首先介绍图像分类神经网络的主流架构概念包括基于卷积神经网络（CNN）的和基于Transformer架构的，然后介绍五种著名的深度学习可解释算法，这些算法在图像分类神经网络上也能生成显著图，后续实验当中这五种算法也会用来作为对比。
+接下来本章首先介绍图像分类神经网络的主流架构概念包括基于卷积神经网络 的和基于Transformer架构的，然后介绍五种著名的深度学习可解释算法，这些算法在图像分类神经网络上也能生成显著图，后续实验当中这五种算法也会用来作为对比。
 
 \section{卷积神经网络}
-卷积神经网络（Convolutional Neural Networks，CNNs）一种特殊类型的神经网络，特别适合于计算机视觉应用\textsuperscript{\cite{image}}。它的设计灵感来源于生物学上对动物视觉皮层的研究，旨在模拟人类视觉系统的工作原理。卷积神经网络的结构包括卷积层、池化层和全连接层，这些层的组合使得CNNs能够有效地处理图像识别、分类和分割等任务。有两个关键的设计思想推动了卷积架构在计算机视觉中的成功。首先，卷积神经网络利用图像的二维结构和一个邻域内的像素通常高度相关的事实。因此，ConvNets避免使用所有像素单元之间的一对一连接(即大多数神经网络的情况)，而倾向于使用分组的局部连接。此外，ConvNet架构依赖于特征共享，因此每个通道(或输出特征映射)都是由在所有位置使用相同滤波器进行卷积生成的，如图\ref{fig:conv1}所示。与标准神经网络相比，卷积神经网络的这一重要特征导致其架构依赖的参数要少得多。其次，卷积神经网络还引入了一个池化步骤，该步骤提供了一定程度的平移不变性，使体系结构较少受到位置变化的影响。另外，池化还允许网络逐渐看到更大的输入部分，这要归功于网络接受视野的增加。随着网络深度的增加，接受视野的大小增加（同时输入分辨率减小），使得网络能够表示输入的更抽象特征。例如，在目标识别任务中，卷积神经网络的层从关注物体的边缘开始，逐渐覆盖整个物体的各个部分，最终从更高层次上覆盖整个物体。
+卷积神经网络（Convolutional Neural Networks，CNNs）一种特殊类型的神经网络，特别适合于计算机视觉应用\textsuperscript{\cite{image}1-2}。它的设计灵感来源于生物学上对动物视觉皮层的研究，旨在模拟人类视觉系统的工作原理。卷积神经网络的结构包括卷积层、池化层和全连接层，这些层的组合使得CNNs能够有效地处理图像识别、分类和分割等任务。有两个关键的设计思想推动了卷积架构在计算机视觉中的成功。首先，卷积神经网络利用图像的二维结构和一个邻域内的像素通常高度相关的事实。因此，ConvNets避免使用所有像素单元之间的一对一连接(即大多数神经网络的情况)，而倾向于使用分组的局部连接。此外，ConvNet架构依赖于特征共享，因此每个通道(或输出特征映射)都是由在所有位置使用相同滤波器进行卷积生成的，如图\ref{fig:conv1}所示。与标准神经网络相比，卷积神经网络的这一重要特征导致其架构依赖的参数要少得多。其次，卷积神经网络还引入了一个池化步骤，该步骤提供了一定程度的平移不变性，使体系结构较少受到位置变化的影响。另外，池化还允许网络逐渐看到更大的输入部分，这要归功于网络接受视野的增加。随着网络深度的增加，接受视野的大小增加（同时输入分辨率减小），使得网络能够表示输入的更抽象特征。例如，在目标识别任务中，卷积神经网络的层从关注物体的边缘开始，逐渐覆盖整个物体的各个部分，最终从更高层次上覆盖整个物体。
 
 \begin{figure}[h]
 	\centering 
@@ -158,7 +158,7 @@ Transformer 技术最初是为了处理自然语言处理任务而设计的，�
 Transformer 编码器：使用 Transformer 模型对序列化的图像数据进行处理，包括多层的自注意力机制和前馈神经网络。
 分类头：将 Transformer 的输出通过一个全连接层进行分类，得到图像的类别预测。
 
-ViT 在图像分类领域的应用有以下优点：可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。
+ViT 在图像分类领域的应用有以下优点：可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。ViT的结构如图\ref{fig:vit2}所示。
 
 \begin{figure}[h]
 	\centering 
@@ -182,7 +182,7 @@ Grad-CAM的核心思想是利用模型的梯度信息和特征图信息来推导
 	\label{fig:gradcam1}
 \end{figure}
 
-下面详细解释一下Grad-CAM的计算过程。若假设$I \in \mathbb{R}^{3\times H \times W}$是输入图片， $\mathcal{F}$是预训练好的基于卷积神经网络的图像分类模型，$\mathcal{F}_c(I)$ 表示输入图片是$I$的情况下模型$\mathcal{F}$输出的关于类别索引$c$的分数（该分数未经Softmax函数）。对于给定的模型$\mathcal{F}$卷积层$l$，在图片$I$输入到模型$\mathcal{F}$前向传播过程中可以从卷积层$l$提取特征图集合$\overset{*}{\bm{A}}$。为了获取具有类别区分性的显著图，Grad-CAM首先需要计算关于类别$c$的梯度，为了得到 $\mathcal{F}_c(I)$ 相对于 第$k$张特征图 $A^k \in \overset{*}{\bm{A}}$ 的梯度，我们可以对 $\mathcal{F}_c(I)$ 进行反向传播。为了得到每个特征图的重要性权重，梯度会在高度和宽度两个维度上进行全局平均。
+下面详细解释一下Grad-CAM的计算过程。若假设$I \in \mathbb{R}^{3\times H \times W}$是输入图片， $\mathcal{F}$是预训练好的基于卷积神经网络的图像分类模型，$\mathcal{F}_c(I)$ 表示输入图片是$I$的情况下模型$\mathcal{F}$输出的关于类别索引$c$的分数（该分数未经softmax函数）。对于给定的模型$\mathcal{F}$卷积层$l$，在图片$I$输入到模型$\mathcal{F}$前向传播过程中可以从卷积层$l$提取特征图集合$\overset{*}{\bm{A}}$。为了获取具有类别区分性的显著图，Grad-CAM首先需要计算关于类别$c$的梯度，为了得到 $\mathcal{F}_c(I)$ 相对于 第$k$张特征图 $A^k \in \overset{*}{\bm{A}}$ 的梯度，我们可以对 $\mathcal{F}_c(I)$ 进行反向传播。为了得到每个特征图的重要性权重，梯度会在高度和宽度两个维度上进行全局平均。
 \begin{equation}
 	w^c_k=\frac{1}{m\times n}\sum_{i=1}^{m}\sum_{j=1}^{n}\frac{\partial \mathcal{F}_c(I)}{\partial A_{ij}^k(I)}
 	\label{eq:gradcam_wk}
@@ -195,14 +195,14 @@ $w^c_k $的含义表示第$k$张特征图在后续计算中对输出分数$\math
 	L_{Grad-CAM}=ReLU(\sum_K(w^c_k A^k))
 	\label{eq:gradcam}
 \end{equation}
-需要注意的是注意，这会产生一个与特征图$A^k$大小相同的原始显著图，若需要将其展示重叠在输入图片上，应该将其进行上采样。还有就是ReLU函数应用于显著图的线性组合，是因为Grad-CAM只对感兴趣的类别有积极影响的特征感兴趣，即类别索引$c$所代表的类别。原始显著图中为负值的像素可能属于图像中的其他类别。若没有这个ReLU函数，显著图中会将其他不相干的类别进行凸显。图\ref{fig:gradcam1}简要展示了Grad-CAM的工作流程。
+需要注意的是注意，这会产生一个与特征图$A^k$尺寸大小相同的原始显著图，若需要将其展示重叠在输入图片上，应该将其进行上采样。还有就是ReLU函数应用于显著图的线性组合，是因为Grad-CAM只对感兴趣的类别有积极影响的特征感兴趣，即类别索引$c$所代表的类别。原始显著图中为负值的像素可能属于图像中的其他类别。若没有这个ReLU函数，显著图中会将其他不相干的类别进行凸显。图\ref{fig:gradcam1}简要展示了Grad-CAM的工作流程。
+
 
 \subsection{Grad-CAM++}
 在原始的CAM\textsuperscript{\cite{zhou2016learning}}方法中每张特征图的权重$w^c_k$是通过最后一层卷积层生成的特征图来训练线性分类器来获得的，但是其局限是必须使用全局平均池化层，需要重新训练模型，Grad-CAM解决了这一问题，通过最后的类别分数反向传播对最后一层卷积层的特征图求导，利用单个梯度矩阵的平均值来得到单张特征图权重，但是这会导致其对于某张特征图加权值过大从而将其他包含目标物体特征的特征图权值过小，从而在最后生成的显著图上忽略关键的特征。图\ref{fig:gradcampp1}举例说明了这一现象，如图所示，图中黑色方块部分表示目标物体在图中二维空间上特征分布，最后经过卷积层生成3个特征图分布是$A^1$、$A^2$和$A^3$，其中$A^1$特征图的特征区域占比最多，$A^2$和$A^3$的特征区域明显较少，如果使用Grad-CAM的加权方式则最后的生成的显著图会将$A^2$和$A^3$的特征区域弱化甚至忽略，这显然是不对的。这种情况一般会出现在有多个目标物体的图片当中。
-
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=15cm]{fig/ch2/gradcampp1.png}
+	\includegraphics[width=15cm ]{fig/ch2/gradcampp1.png}
 	\bicaption[\xiaosi 一个假设性的例子说明Grad-CAM++的优势]{\wuhao 一个假设性的例子说明Grad-CAM++的优势}{\wuhao A hypothetical example elucidating the intuition behind Grad-CAM++}
 	\label{fig:gradcampp1}
 \end{figure}
@@ -218,18 +218,18 @@ Grad-CAM++为了解决这一现象则没有直接将梯度矩阵直接全剧平�
 	\alpha_{i j}^{k c}=\frac{\frac{\partial^{2} Y^{c}}{\left(\partial A_{ij}^{k}\right)^{2}}}{2 \frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}+\sum_{a} \sum_{b} A_{a b}^{k}\frac{\partial^{3} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{3}}}
 	\label{eq:gradcampp_akc}
 \end{equation}
-
-将式\ref{eq:gradcampp_akc}和式\ref{eq:gradcampp_wkc}结合即可得到如下完整的权重计算公式：
-\begin{equation}
-	w_{k}^{c}=\sum_{i} \sum_{j}\left[\frac{\frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}}{2 \frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}+\sum_{a} \sum_{b} A_{a b}^{k}\frac{\partial^{3} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{3}}}\right] \cdot \operatorname{ReLU}\left(\frac{\partial Y^{c}}{\partial A_{i j}^{k}}\right)
-\end{equation}
-得到权重后，将权重$w_{k}^{c}$和其对应的特征图$A^k$相乘，然后所有特征图线性相加即可得到Grad-CAM++生成的最终显著图。计算过程和式\ref{eq:gradcam}一致。图\ref{fig:gradcampp2}中展示了CAM、Grad-CAM、Grad-CAM++的权重计算方式异同。
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch2/gradcampp2.png}
 	\bicaption[\xiaosi CAM, Grad-CAM, Grad-CAM++的各自计算方式]{\wuhao CAM, Grad-CAM, Grad-CAM++的各自计算方式}{\wuhao Respective calculations for CAM, Grad-CAM, Grad-CAM++}
 	\label{fig:gradcampp2}
 \end{figure}
+将式\ref{eq:gradcampp_akc}和式\ref{eq:gradcampp_wkc}结合即可得到如下完整的权重计算公式：
+\begin{equation}
+	w_{k}^{c}=\sum_{i} \sum_{j}\left[\frac{\frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}}{2 \frac{\partial^{2} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{2}}+\sum_{a} \sum_{b} A_{a b}^{k}\frac{\partial^{3} Y^{c}}{\left(\partial A_{i j}^{k}\right)^{3}}}\right] \cdot \operatorname{ReLU}\left(\frac{\partial Y^{c}}{\partial A_{i j}^{k}}\right)
+\end{equation}
+得到权重后，将权重$w_{k}^{c}$和其对应的特征图$A^k$相乘，然后所有特征图线性相加即可得到Grad-CAM++生成的最终显著图。计算过程和式\ref{eq:gradcam}一致。图\ref{fig:gradcampp2}中展示了CAM、Grad-CAM、Grad-CAM++的权重计算方式异同。
+
 
 \subsection{Score-CAM}
 Grad-CAM和Grad-CAM++都依赖反向传播的梯度作为权重，但是这种基于梯度的方法也有缺点，若激活函数是Sigmoid函数或者ReLU函数，则会分别带来梯度饱和以及梯度消失的问题\textsuperscript{\cite{simonyan2014visualising}}，反映到显著图上就是会导致噪声问题。此外依靠梯度作为权重也存在不可靠的问题，如图\ref{fig:scorecam1}所示，在这幅图中(2)(3)(4)分别是对应的特征图上采样后叠加到原图上，其中没有遮盖的部分表示该特征图在原图上较为关注的特征区域，将(2)(3)(4)通过图像分类模型，得到对应类别的得分分别是 0.003，0.999，0.997。从结果上看，(3)(4)的特征图关注的区域对于该类别是比较重要的。然而在生成Grad-CAM的显著图时，这三者计算出的权重分别是0.035,0.027,0.021。反而是对于结果影响很小的(2)的特征图权重更高。这就显示出了基于梯度的类激活映射方法的不足。
@@ -340,10 +340,10 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 	\sum_{i} R_{i \leftarrow j}^{(l, l+1)}=R_{j}^{(l+1)} \cdot\left(1-\frac{b_{j}}{z_{j}}\right)
 \end{equation}
 
-\subsection{Transformer Attribution}
-Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transformer}}于近些年提出的针对基于Transformer架构的深度神经网络的可解释方法，其在图像分类神经网络上也能够生成质量较高的显著图。Transformer Attribution针对Transformer的特殊结构改进了传统的LRP算法，针对相关性反向传播过程中的注意力层和残差连接的提出了特殊的LRP传播规则，同时将其应用到基于transformer的图片分类模型中，相比之前的可视化算法，Transformer Attribution得到了较为可靠的显著图结果。
+\subsection{Transformer attribution}
+Transformer attribution是H.Chefer等人\textsuperscript{\cite{chefer2021transformer}}于近些年提出的针对基于Transformer架构的深度神经网络的可解释方法，其在图像分类神经网络上也能够生成质量较高的显著图。Transformer attribution针对Transformer的特殊结构改进了传统的LRP算法，针对相关性反向传播过程中的注意力层和残差连接的提出了特殊的LRP传播规则，同时将其应用到基于Transformer的图片分类模型中，相比之前的可视化算法，Transformer attribution得到了较为可靠的显著图结果。
 
-下面是Transformer Attribution的详细推导过程。对于LRP传播，总是遵守以下规则：
+下面是Transformer attribution的详细推导过程。对于LRP传播，总是遵守以下规则：
 \begin{equation}
 	\sum_{j} R_{j}^{(n)}=\sum_{i} R_{i}^{(n-1)}
 \end{equation}
@@ -356,12 +356,12 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 	R_{j}^{(n)} =\mathcal{G}\left(\mathbf{X}, \mathbf{Y}, R^{(n-1)}\right) =\sum_{i} \mathbf{X}_{j} \frac{\partial L_{i}^{(n)}(\mathbf{X}, \mathbf{Y})}{\partial \mathbf{X}_{j}} \frac{R_{i}^{(n-1)}}{L_{i}^{(n)}(\mathbf{X}, \mathbf{Y})}
 	\label{eq:trans_Rnj1}
 \end{equation}
-对于激活函数是$ReLU$的情况，第$n$层的第$j$个神经元的相关性分数可以如下计算：
+对于激活函数是ReLU的情况，第$n$层的第$j$个神经元的相关性分数可以如下计算：
 \begin{equation}
 	R_{j}^{(n)}=\mathcal{G}\left(x^{+}, w^{+}, R^{(n-1)}\right)=\sum_{i} \frac{x_{j}^{+} w_{j i}^{+}}{\sum_{j^{\prime}} x_{j^{\prime}}^{+} w_{j^{\prime} i}^{+}} R_{i}^{(n-1)}
 	\label{eq:trans_Rnj2}
 \end{equation}
-式\ref{eq:trans_Rnj1}和式\ref{eq:trans_Rnj2}中，$j$是和第$n$层的神经元对应的，$i$和第$n-1$层的神经元对应，$j^{\prime}$是第$n$层神经元的取和过程中的迭代计数符号。加号表示只保留正值，计算方式为$max(0,x)$。但是Transformer使用的是$GELU$函数，有正值也有负值同时也是非线性函数。其相关性分数计算方式如下：
+式\ref{eq:trans_Rnj1}和式\ref{eq:trans_Rnj2}中，$j$是和第$n$层的神经元对应的，$i$和第$n-1$层的神经元对应，$j^{\prime}$是第$n$层神经元的取和过程中的迭代计数符号。加号表示只保留正值，计算方式为$max(0,x)$。但是Transformer使用的是GELU函数，有正值也有负值同时也是非线性函数。其相关性分数计算方式如下：
 \begin{equation}
 	R_{j}^{(n)}  =\mathcal{G}_{q}\left(x, w, q, R^{(n-1)}\right) \\
 	 =\sum_{\{i \mid(i, j) \in q\}} \frac{x_{j} w_{j i}}{\sum_{\{j^{\prime} \mid\left(j^{\prime}, i\right) \in q\}} x_{j^{\prime}} w_{j^{\prime} i}} R_{i}^{(n-1)}
@@ -377,7 +377,7 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 	\sum_j R_{j}^{u^{(n)}}+ \sum_k R_{k}^{v^{(n)}}=\sum_i R_{i}^{(n-1)}
 	\label{eq:trans_sum}
 \end{equation}
-式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer Attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性:
+式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性:
 
 \begin{equation}
 	\bar{R}_{j}^{u^{(n)}}=R_{j}^{u^{(n)}} \frac{\left|\sum_{j} R_{j}^{u^{(n)}}\right|}{\left|\sum_{j} R_{j}^{u^{(n)}}\right|+\left|\sum_{k} R_{k}^{v^{(n)}}\right|} \cdot \frac{\sum_{i} R_{i}^{(n-1)}}{\sum_{j} R_{j}^{u^{(n)}}}
@@ -437,7 +437,7 @@ Transformer Attribution是Chefer等人\textsuperscript{\cite{chefer2021transform
 \end{figure}
 
 \section{本章小结}
-本章首先简要介绍了卷积神经网络和Transformer架构的基础原理，它们也是当前图像分类神经网络的两种主要基础架构。然后本章重点介绍了当前5种比较著名的显著图解释方法的背后原理和显著图生成的计算过程，这5种方法分别是Grad-CAM，Grad-CAM++，Score-CAM，LRP和Transformer Attribution。这5种显著图解释方法也是第3章和第4章实验对比的其中一些方法。
+本章首先简要介绍了卷积神经网络和Transformer架构的基础原理，它们也是当前图像分类神经网络的两种主要基础架构。然后本章重点介绍了当前5种比较著名的显著图解释方法的背后原理和显著图生成的计算过程，这5种方法分别是Grad-CAM，Grad-CAM++，Score-CAM，LRP和Transformer a ttribution。这5种显著图解释方法也是第3章和第4章实验对比的其中一些方法。
 
 
 
