@@ -139,11 +139,14 @@
 \end{table}
 
 \subsection{数据集说明和数据集处理}
-在本章的实验当中，主要使用了两个数据集，下面是三个数据集的简要介绍：
-1. ILSVRC 2012数据集
+在本章的实验当中，主要使用了两个数据集，下面是两个数据集的简要介绍：
+
+（1）ILSVRC 2012数据集
+
 ILSVRC 2012（ImageNet Large Scale Visual Recognition Challenge 2012）是一个用于视觉对象识别和定位的大规模数据集和竞赛。该数据集包含超过120万张标注图片，涵盖1000个不同类别的物体和场景。ILSVRC 2012竞赛旨在推动计算机视觉领域的发展，参与者需要开发能够识别图像中物体类别的算法，并对物体进行定位。该竞赛对于深度学习和卷积神经网络等技术的发展起到了重要推动作用，成为了评估图像识别算法性能的重要基准。ILSVRC 2012数据集的发布和竞赛对于推动计算机视觉领域的发展产生了深远影响。
 
-2. ImageNet-Segmentation数据集
+（2）ImageNet-Segmentation数据集
+
 ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014imagenet}}发布的，该论文提出了一种自动填充该数据集的方法，通过像素级的对象-背景分割来丰富图像的注释信息。研究者们通过逐步利用已经分割的图像来引导新图像的分割过程，同时结合类别级别的分割，以实现高质量的分割结果。他们还通过实验证明了该方法在iCoseg数据集上取得了最先进的结果，并且成功地将该方法应用于ImageNet数据集，共包含约50万张图像。最终，他们通过人工标注的方式对445个类别的4276张图像进行了分割，并将这些分割结果整理为ImageNet-Segmentation数据集并发布。
 
 在本章扰动实验中使用的是ILSVRC 2012验证集，包含50000张图片，并且将该验证集中的图片尺寸调整为(3$\times$224$\times$224)，其中$3$是表示RGB颜色通道数量，像素值进行归一化调整，调整后的像素值范围是[0, 1]，最后使用Imagenet数据集的均值[0.229, 0.224, 0.225]和方差[0.485, 0.456, 0.406]对所有图片像素值进行标准化处理。在图像分割实验当中使用了ImageNet-Segmentation数据集，包含4276张图片，总共445个类别。
@@ -158,8 +161,6 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 \subsection{直观评估}
 为了直观评估本章的增强算法生成的显著图效果，本节从ILSVRC 2012验证集中随机选取图片进行了生成显著图的实验。如图\ref{fig:contrast1}和图\ref{fig:contrast2}所示，红色方框中的那列显著图是将本章的增强算法应用到同一种显著图生成方法上得到的。由于LRP算法直接在ViT上的应用效果很差，生成的显著图特征不明显，因此在LRP算法那列下叠加了输入图片作为参照。图\ref{fig:contrast1}和图\ref{fig:contrast2}中可以明显看到，在同一种显著图生成方法下，使用增强算法后的显著图相比没有使用增强算法的显著图呈现出对目标特征轮廓更加清晰的定位，无关的显著高亮区域也更少，能够给用户更加清晰的视觉解释。此外在两种不同架构的图像分类模型ViT和VGG19下，本章的增强算法都能够给出明显的视觉提升效果。例如图\ref{fig:contrast1}中第三行图片，该行的输入图片的类别是“蚯蚓”，在ViT模型下对Transformer attribution方法应用增强算法后生成显著图相比没有使用的增强算法的Transformer attribution方法能够更加清晰的描绘蚯蚓的轮廓特征，这种增强效果同样也反映在VGG19模型下的Grad-CAM方法和Grad-CAM++方法上，这两种方法生成显著图原本只能给出VGG19模型对蚯蚓的左上和右下部分比较关注，却无法得出具体的轮廓细节，在应用本章增强算法后的显著图泽给出了左上和右下明显的蚯蚓轮廓细节。
 
-此外，本节还选取了一些特殊的图片，这些图片中包含模型能够识别出的多个类别的物体。利用这些图片分别对不同的物体的生成显著图可以得到显著图解释算法是否有类别区分性。 如图\ref{fig:classSensitive}所示，红色方框中的仍然是应用本章增强算法后的显著图结果，在第一张输入图片中包含“猫”和“打印机”两个类别，分别对其应用显著图生成方法可以得到图像分类模型对两种类别在输入图片中各自关注的区域。可以看出本章的增强算法依然能够对不同类别的显著图进行增强，例如在第一张输入图片下对VGG19应用Grad-CAM方法，在“打印机”这个类别下的显著图仍然对“猫”这个类别的图片区域进行了高亮突出，在应用增强算法后的显著图则只对“打印机”这个类别的图片区域进行了凸显。这表明本章的增强算法可以对同一张图片中的不同类别的显著图进行增强，给出更加符合模型决策视觉解释。
-
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/Contrast.png}
@@ -168,7 +169,7 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 	\label{fig:contrast1}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch4/Contrast1.png}
 	\bicaption[\xiaosi 增强方法应用于多种显著图解释方法上的直观对比结果]{\wuhao 增强方法应用于多种显著图解释方法上的直观对比结果}{\wuhao Intuitive comparison of enhancement methods applied to multiple saliency methods}
@@ -183,7 +184,11 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 	%	\bicaption[\xiaosi MSG-CAM算法流程示意图]{\wuhao MSG-CAM算法流程示意图}{\wuhao Pipeline of MSG-CAM}
 	\label{fig:classSensitive}
 \end{figure}
-\begin{table}
+
+此外，本节还选取了一些特殊的图片，这些图片中包含模型能够识别出的多个类别的物体。利用这些图片分别对不同的物体的生成显著图可以得到显著图解释算法是否有类别区分性。 如图\ref{fig:classSensitive}所示，红色方框中的仍然是应用本章增强算法后的显著图结果，在第一张输入图片中包含“猫”和“打印机”两个类别，分别对其应用显著图生成方法可以得到图像分类模型对两种类别在输入图片中各自关注的区域。可以看出本章的增强算法依然能够对不同类别的显著图进行增强，例如在第一张输入图片下对VGG19应用Grad-CAM方法，在“打印机”这个类别下的显著图仍然对“猫”这个类别的图片区域进行了高亮突出，在应用增强算法后的显著图则只对“打印机”这个类别的图片区域进行了凸显。这表明本章的增强算法可以对同一张图片中的不同类别的显著图进行增强，给出更加符合模型决策视觉解释。
+
+
+\begin{table}[h!]
 	\centering
 	\renewcommand{\arraystretch}{1.5}
 	\bicaption[\xiaosi 正负扰动实验数据对比]{\wuhao 正负扰动实验数据对比}{\wuhao Comparison of positive and negative perturbation experimental data}
@@ -236,7 +241,7 @@ ImageNet-Segmentation数据集是由论文\textsuperscript{\cite{guillaumin2014i
 
 
 
-\begin{table}
+\begin{table}[h!]
 	\renewcommand{\arraystretch}{1.5}
 	\centering
 	\bicaption[\xiaosi 显著图增强算法在图像分割的表现]{\wuhao 不同的显著图解释方法应用增强算法前后图像分割的表现}{\wuhao Performance of saliency map enhancement algorithms for image segmentation}
