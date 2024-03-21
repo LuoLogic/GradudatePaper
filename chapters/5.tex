@@ -26,7 +26,11 @@
  
  （6）备份保存模块：用户可以把在实验测试模块中的数据进行备份保存，保存方式是纯文本形式，包括实验时间，实验结果，实验相关参数等。
 
-\begin{table}
+
+ 
+\section{开发环境及相关技术介绍}
+本章的系统由于采用客户端/服务器架构，所以软件硬件环境也分为服务端和客户端。在服务端主要是执行计算量较大的关于深度神经网络的计算，客户端主要是负责页面展示和功能选择。本系统的开发端即可看作客户端，开发的客户端即在开发端运行。  具体配置要求如表\ref{tab:sys}所示。
+\begin{table}[!ht]
 	\renewcommand{\arraystretch}{1.5}
 	\centering
 	\bicaption[\xiaosi 软件开发环境和硬件配置]{\wuhao 软件开发环境和硬件配置}{\wuhao Software development environment and hardware configuration}
@@ -56,10 +60,6 @@
 	\end{tabular}
 \end{table}
 
- 
-\section{开发环境及相关技术介绍}
-本章的系统由于采用客户端/服务器架构，所以软件硬件环境也分为服务端和客户端。在服务端主要是执行计算量较大的关于深度神经网络的计算，客户端主要是负责页面展示和功能选择。本系统的开发端即可看作客户端，开发的客户端即在开发端运行。  具体配置要求如表\ref{tab:sys}所示。
-
 
 
 本章的系统使用了PyQt作为前端图形开发框架，在此对其进行简要的介绍。PyQt是一个用于创建图形用户界面（GUI）应用程序的开发框架，它基于Qt库和Python语言。PyQt提供了丰富的工具和组件，使开发者能够快速、灵活地构建跨平台的应用程序。它包括了用于创建窗口、按钮、菜单、对话框等各种GUI元素的类和方法，同时也支持事件处理、信号与槽机制，以及与数据库、网络等其他模块的集成。PyQt还提供了对Qt Designer的支持，可以通过可视化界面设计工具来快速布局和设计界面。由于PyQt基于Qt库，因此能够充分利用Qt的强大功能和跨平台特性，使开发者能够轻松地将应用程序部署到不同的操作系统上。总之，PyQt是一个功能强大、灵活且易于使用的图形开发框架，适用于各种规模和类型的应用程序开发。
@@ -70,7 +70,7 @@
 
 本系统的整体系统架构可以从下到上可以分为四个层次，分别是：基础平台、软件平台、功能逻辑和前端页面。每个层次包含的模块内容如图\ref{fig:sys}所示。
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch5/sys.png}
 	\bicaption[\xiaosi 系统架构设计图]{\wuhao 系统架构设计图}{\wuhao System architecture design diagram}
@@ -81,7 +81,7 @@
 
 显著图解释方法对比评测系统的模块设计图如图\ref{fig:function}所示，用户需要注册登录才能使用系统主要功能，用户的相关个人信息保存在服务端的数据库中，服务端和客户端通过http协议进行通信。
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch5/function.png}
 	\bicaption[\xiaosi 系统模块设计图]{\wuhao 系统模块设计图}{\wuhao System module design diagram}

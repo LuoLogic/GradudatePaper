@@ -2,7 +2,7 @@
 
 
 \chapter{相关理论介绍
-}
+}\label{relatedWork}
 \thispagestyle{others}
 \pagestyle{others}
 \xiaosi
@@ -17,7 +17,7 @@
 接下来本章首先介绍图像分类神经网络的主流架构概念包括基于卷积神经网络 的和基于Transformer架构的，然后介绍五种著名的深度学习可解释算法，这些算法在图像分类神经网络上也能生成显著图，后续实验当中这五种算法也会用来作为对比。
 
 \section{卷积神经网络}
-卷积神经网络（Convolutional Neural Networks，CNNs）一种特殊类型的神经网络，特别适合于计算机视觉应用\textsuperscript{\cite{image}1-2}。它的设计灵感来源于生物学上对动物视觉皮层的研究，旨在模拟人类视觉系统的工作原理。卷积神经网络的结构包括卷积层、池化层和全连接层，这些层的组合使得CNNs能够有效地处理图像识别、分类和分割等任务。有两个关键的设计思想推动了卷积架构在计算机视觉中的成功。首先，卷积神经网络利用图像的二维结构和一个邻域内的像素通常高度相关的事实。因此，ConvNets避免使用所有像素单元之间的一对一连接(即大多数神经网络的情况)，而倾向于使用分组的局部连接。此外，ConvNet架构依赖于特征共享，因此每个通道(或输出特征映射)都是由在所有位置使用相同滤波器进行卷积生成的，如图\ref{fig:conv1}所示。与标准神经网络相比，卷积神经网络的这一重要特征导致其架构依赖的参数要少得多。其次，卷积神经网络还引入了一个池化步骤，该步骤提供了一定程度的平移不变性，使体系结构较少受到位置变化的影响。另外，池化还允许网络逐渐看到更大的输入部分，这要归功于网络接受视野的增加。随着网络深度的增加，接受视野的大小增加（同时输入分辨率减小），使得网络能够表示输入的更抽象特征。例如，在目标识别任务中，卷积神经网络的层从关注物体的边缘开始，逐渐覆盖整个物体的各个部分，最终从更高层次上覆盖整个物体。
+卷积神经网络（Convolutional Neural Networks，CNNs）一种特殊类型的神经网络，特别适合于计算机视觉应用\textsuperscript{\cite{image}1-2}。它的设计灵感来源于生物学上对动物视觉皮层的研究，旨在模拟人类视觉系统的工作原理。卷积神经网络的结构包括卷积层、池化层和全连接层，这些层的组合使得CNNs能够有效地处理图像识别、分类和分割等任务。有两个关键的设计思想推动了卷积架构在计算机视觉中的成功。首先，卷积神经网络利用图像的二维结构和一个邻域内的像素通常高度相关的事实。因此，CNNs避免使用所有像素单元之间的一对一连接（即大多数神经网络的情况），而倾向于使用分组的局部连接。此外，卷积网络架构依赖于特征共享，因此每个通道（即输出特征映射）都是由在所有位置使用相同滤波器进行卷积生成的，如图\ref{fig:conv1}所示。与标准神经网络相比，卷积神经网络的这一重要特征导致其架构依赖的参数要少得多。其次，卷积神经网络还引入了一个池化步骤，该步骤提供了一定程度的平移不变性，使体系结构较少受到位置变化的影响。另外，池化还允许网络逐渐看到更大的输入部分，这要归功于网络接受视野的增加。随着网络深度的增加，接受视野的大小增加（同时输入分辨率减小），使得网络能够表示输入的更抽象特征。例如，在目标识别任务中，卷积神经网络的层从关注物体的边缘开始，逐渐覆盖整个物体的各个部分，最终从更高层次上覆盖整个物体。
 
 \begin{figure}[h]
 	\centering 
@@ -25,6 +25,7 @@
 	\bicaption[\xiaosi 标准卷积网络结构示意图]{\wuhao 标准卷积网络结构示意图}{\wuhao Illustration of the structure of a standard convolutional network}
 	\label{fig:conv1}
 \end{figure}
+\vspace{-0.5cm}
 
 卷积神经网络的核心是卷积层，它通过卷积操作提取输入图像的特征。卷积操作是一种线性、平移不变的操作，它通过在输入信号上进行局部加权组合来捕获不同的特征。卷积操作的参数是卷积核，不同的卷积核可以捕获图像的不同特征，例如边缘、纹理和形状等。卷积层的输出被送入激活函数进行非线性变换，以增加网络的表达能力。
 
@@ -34,7 +35,7 @@
 
 
 \section{基于Transformer的图像分类神经网络}
-Transformer\textsuperscript{\cite{bengio2013representation}}是一种基于自注意力机制的深度学习模型架构，最初由A.Vaswani等人于2017年提出\textsuperscript{\cite{vaswani2017attenion}}，被广泛应用于自然语言处理任务，如机器翻译、文本生成和语言建模等。相较于传统的循环神经网络（RNN）和卷积神经网络（CNN），Transformer在处理长距离依赖性和并行计算方面具有显著优势，成为了当今深度学习领域的研究热点。
+Transformer\textsuperscript{\cite{bengio2013representation}}是基于自注意力机制的深度学习模型架构，最初由A.Vaswani等人于2017年提出\textsuperscript{\cite{vaswani2017attenion}}，被广泛应用于自然语言处理任务，如机器翻译、文本生成和语言建模等。相较于传统的循环神经网络（RNN）和卷积神经网络（CNN），Transformer在处理长距离依赖性和并行计算方面具有显著优势，成为了当今深度学习领域的研究热点。
 
 Transformer模型的核心思想是完全基于注意力机制来实现信息的传递和组合。在传统的神经网络结构中，信息的传递是通过固定的层次顺序进行的，而Transformer则引入了自注意力机制，使得模型可以在不同位置之间建立动态的注意力联系。这种注意力机制使得模型能够更好地捕捉输入序列中不同位置之间的依赖关系，从而提高了模型在处理长距离依赖性任务时的性能。
 
@@ -53,7 +54,7 @@ Transformer模型的核心思想是完全基于注意力机制来实现信息的
 \end{figure}
 
 \subsection{多头自注意力机制}
-多头注意力机制是一种用于增强神经网络模型对输入序列的表示能力的技术。它通过将注意力机制应用于多个头部（head）来并行处理不同的注意力表示，从而提高模型的泛化能力和性能。多头注意力机制最早由Vaswani等人在Transformer模型中提出，并在自然语言处理领域取得了巨大成功。
+多头注意力机制是一种用于增强神经网络模型对输入序列的表示能力的技术。它通过将注意力机制应用于多个头部（head）来并行处理不同的注意力表示，从而提高模型的泛化能力和性能。多头注意力机制最早由A.Vaswani等人在Transformer模型中提出，并在自然语言处理领域取得了巨大成功。
 
 多头注意力机制的基本原理是将输入序列分别映射到多个不同的查询、键和值空间，并通过计算每个头部的注意力权重来融合不同的信息。具体来说，多头注意力机制可以表示为以下公式：
 \begin{equation}
@@ -119,9 +120,8 @@ Transformer模型是一种基于注意力机制的神经网络模型，由编码
 
 层归一化是一种对神经网络中每一层输出进行归一化的技术，有助于加速模型的收敛和提高模型的泛化能力。在编码器的每个子层（包括多头自注意力机制和前馈神经网络）后都会应用层归一化操作。层归一化的计算公式可以表示为：
 \begin{equation}
-	\text{LayerNorm}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+	\text{LayerNorm}(x) = \gamma \cdot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
 \end{equation}
-
 
 其中，$x$表示输入序列的隐藏表示，$\gamma$和$\beta$分别表示学习到的缩放因子和偏置项，$\mu$和$\sigma$分别表示输入的均值和标准差，$\epsilon$是一个很小的常数，避免分母为零。层归一化通过对每一层的输出进行归一化，有助于减少内部协变量转移，提高模型的训练效果。
 
@@ -148,7 +148,7 @@ A_i = \text{softmax}(\frac{Q_iK_i^T}{\sqrt{d_k}})
 
 通过掩码多头自注意力机制，解码器可以有效地关注目标序列中的不同部分，并根据输入序列和先前生成的部分序列调整生成的单词，从而实现对目标序列的准确生成。
 \subsection{应用于图像分类领域的Transformer}
-Transformer 技术最初是为了处理自然语言处理任务而设计的，但随着其出色的性能和可扩展性，人们开始将 Transformer 技术应用于其他领域，包括图像分类。虽然传统的卷积神经网络（CNN）在图像分类任务中表现出色，但 Transformer 在图像分类领域也展示出了很好的潜力。
+Transformer 技术最初是为了处理自然语言处理任务而设计的，但随着其出色的性能和可扩展性，人们开始将 Transformer 技术应用于其他领域，包括图像分类。虽然传统的卷积神经网络在图像分类任务中表现出色，但 Transformer 在图像分类领域也展示出了很好的潜力。
 
 在图像分类领域应用 Transformer 技术的一个主要方法是 Vision Transformer（ViT）\textsuperscript{\cite{dosovitskiy2020image}}。ViT 将输入的图像像素视为序列化的数据，然后利用 Transformer 模型来对序列化的图像数据进行处理。ViT 的基本架构如下：
 
@@ -158,7 +158,7 @@ Transformer 技术最初是为了处理自然语言处理任务而设计的，�
 Transformer 编码器：使用 Transformer 模型对序列化的图像数据进行处理，包括多层的自注意力机制和前馈神经网络。
 分类头：将 Transformer 的输出通过一个全连接层进行分类，得到图像的类别预测。
 
-ViT 在图像分类领域的应用有以下优点：可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。ViT的结构如图\ref{fig:vit2}所示。
+ViT 在图像分类领域的应用有以下优点。（1）可扩展性：Transformer 模型的自注意力机制使得 ViT 能够捕捉图像中的全局信息，而不受卷积核大小的限制。（2）灵活性：ViT 可以处理不同尺寸的图像，而无需调整网络结构。（3）泛化能力：ViT 在处理小样本数据集时表现较好，因为 Transformer 模型具有强大的表示学习能力。ViT的结构如图\ref{fig:vit2}所示。
 
 \begin{figure}[h]
 	\centering 
@@ -241,6 +241,7 @@ Grad-CAM和Grad-CAM++都依赖反向传播的梯度作为权重，但是这种�
 	\bicaption[\xiaosi 特征图扰动示例]{\wuhao 特征图扰动示例}{\wuhao Example of feature map perturbation}
 	\label{fig:scorecam1}
 \end{figure}
+\vspace{0.5cm}
 
 因此Score-CAM不依赖于梯度来获得特征图线性加权的权重，而是通过每张特征图在目标类上的前向传播的概率分数来获得每张特征图的权重。下面通过具体的定义来说明Score-CAM的计算方式。当输入图片为$I \in \mathbb{R}^{3\times H \times W}$时，图像分类模型为$\mathcal{F}$时，经过前向传播从指定卷积层$l$提取的第$k$个通道的特征图为$A^k_l$，那么该特征图对于指定类别$c$的概率分数$\mathcal{F}_c(I)$的贡献程度，即$A^k_l$权重$C(A^k_l)$可以由以下式子计算得出：
 \begin{equation}
@@ -286,10 +287,12 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 	z_{ij}=x_iw_{ij}
 	\label{eq:lrp_zij}
 \end{equation}
+\vspace{-0.5cm}
 \begin{equation}
 	z_{j}=\sum_i z_{ij}+b_j
 	\label{eq:lrp_zj}
 \end{equation}
+\vspace{-0.5cm}
 \begin{equation}
 	x_j=g(z_{j})
 	\label{eq:lrp_xj}
@@ -299,7 +302,7 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[width=15cm]{fig/ch2/lrp2.png}
+	\includegraphics[width=10cm]{fig/ch2/lrp2.png}
 	\bicaption[\xiaosi 多层神经网络前向传播计算示例]{\wuhao 多层神经网络前向传播计算示例}{\wuhao Example of a multilayer neural network forward propagation calculation}
 	\label{fig:lrp2}
 \end{figure}
@@ -314,12 +317,9 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 	\label{fig:lrp3}
 \end{figure}
 
-\begin{figure}[h]
-	\centering 
-	\includegraphics[width=15cm]{fig/ch2/lrp4.png}
-	\bicaption[\xiaosi 层间相关性传播分配相关性分数的例子]{\wuhao 层间相关性传播分配相关性分数的例子}{\wuhao Example of LRP assigning relevance scores}
-	\label{fig:lrp4}
-\end{figure}
+
+
+
 在图\ref{fig:lrp4}中的右半部分，第3层的7号神经元的相关性分数$R_{7}^{(3)}$相关性反向传播时是按照如下式子分配的：
 \begin{equation}
 	R_{7}^{(3)}=R_{4 \leftarrow 7}^{(2,3)}+R_{5 \leftarrow 7}^{(2,3)}+R_{6 \leftarrow 7}^{(2,3)}
@@ -329,6 +329,14 @@ LRP全称为Layer-wise relevance propagation，意思是层间相关性传播，
 	R_{i \leftarrow j}^{(l, l+1)}=\frac{z_{i j}}{\sum_{i} z_{i j}} R_{j}^{(l+1)}
 	\label{eq:lrp_Rij}
 \end{equation}
+
+\begin{figure}[!ht]
+	\centering 
+	\includegraphics[width=15cm]{fig/ch2/lrp4.png}
+	\bicaption[\xiaosi 层间相关性传播分配相关性分数的例子]{\wuhao 层间相关性传播分配相关性分数的例子}{\wuhao Example of LRP assigning relevance scores}
+	\label{fig:lrp4}
+\end{figure}
+
 式\ref{eq:lrp_Rij}的含义就是就是下层的神经元$j$的分配给上层神经元$j$相关性分数是$j$的总相关性分数乘以神经元$i$输出给$j$的值占$j$收到上层所有值的比。
 
 但是在实际应用当中，神经网络会存在激活函数和偏置，式\ref{eq:lrp_Rij}无法完美应用。考虑到激活函数是双曲正切$Tanh(x)$和$ReLU$函数的情况，可以用以下公式取近似值：
@@ -377,7 +385,7 @@ Transformer attribution是H.Chefer等人\textsuperscript{\cite{chefer2021transfo
 	\sum_j R_{j}^{u^{(n)}}+ \sum_k R_{k}^{v^{(n)}}=\sum_i R_{i}^{(n-1)}
 	\label{eq:trans_sum}
 \end{equation}
-式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性:
+式\ref{eq:trans_sum}中$u$和$v$两个向量做加法操作（对应跳跃连接的情况）时满足上述相关性原则，但是当两者作乘法时（对应注意力层矩阵乘法的情况）则不适用。因此为了解决由于矩阵乘法导致的在注意机制下相关性不守恒以及跳跃连接时存在的数值膨胀问题，Transformer attribution使用如下公式\ref{eq:trans_Ru}和式\ref{eq:trans_Rv}分别计算$u$和$v$的相关性：
 
 \begin{equation}
 	\bar{R}_{j}^{u^{(n)}}=R_{j}^{u^{(n)}} \frac{\left|\sum_{j} R_{j}^{u^{(n)}}\right|}{\left|\sum_{j} R_{j}^{u^{(n)}}\right|+\left|\sum_{k} R_{k}^{v^{(n)}}\right|} \cdot \frac{\sum_{i} R_{i}^{(n-1)}}{\sum_{j} R_{j}^{u^{(n)}}}
@@ -400,7 +408,7 @@ Transformer attribution是H.Chefer等人\textsuperscript{\cite{chefer2021transfo
 	\label{eq:trans_restrict}
 \end{equation}
 
-假设$M$是一个包含$B$个模块的基于Transformer的模型，每个模块包含自注意力层、跳跃连接（残差连接）、线性层和规范化层。该模型将输入转为$s$个token，并且每个token的尺寸大小是$d$，且包含一个特殊的token用来分类，该token记为[CLS]。模型$M$输出一个长度为$C$的分类概率向量$y$，使用分类token计算。自注意模块作用于嵌入维数$d$的一个子空间$d_h$上，$h$为“头”的个数，令$d_h=d$。自注意模块定义如下:
+假设$M$是一个包含$B$个模块的基于Transformer的模型，每个模块包含自注意力层、跳跃连接（残差连接）、线性层和规范化层。该模型将输入转为$s$个token，并且每个token的尺寸大小是$d$，且包含一个特殊的token用来分类，该token记为[CLS]。模型$M$输出一个长度为$C$的分类概率向量$y$，使用分类token计算。自注意模块作用于嵌入维数$d$的一个子空间$d_h$上，$h$为“头”的个数，令$d_h=d$。自注意模块定义如下：
 \begin{equation}
 	\mathbf{A}^{(b)}=\operatorname{softmax}\left(\frac{\mathbf{Q}^{(b)} \cdot \mathbf{K}^{(b)^{T}}}{\sqrt{d_{h}}}\right) 
 	\label{eq:trans_ab}
@@ -429,7 +437,7 @@ Transformer attribution是H.Chefer等人\textsuperscript{\cite{chefer2021transfo
 如式\ref{eq:trans_c}所示，Transfomer attribution的最终解释输出是一个$s\times s$的矩阵$\mathbf{C}$，$s$表示经过输入到Transformer Encoder中的序列长度。$\mathbf{C}$中的每行对应于一个token对于其他token的相关性权重序列。由于是考虑基于Transformer的图像分类神经网络，因此只用考虑封装了分类信息的[CLS]的token的相关性序列，即$\mathbf{C}_{[CLS]} \in \mathbb{R}^s$对应于$\mathbf{C}$中的关于[CLS]token的那一行，因此该行中每个分数即是对每个输入token对输出分类的相关性分数。
 
 不考虑其他特殊token，比如[CLS]等，在实际的基于Transformer的图像分类神经网络ViT\textsuperscript{\cite{dosovitskiy2020image}}中，每一个输入token表示一个图像块，为了获得最终的显著图，则需要将获得相关性序列$\mathbf{C}_{[CLS]} \in \mathbb{R}^s$进行重新调整，调整为尺寸为$\sqrt{s-1}\times \sqrt{s-1}$的原始显著图，由于$s-1$的数值一般为图像块的个数，因此原始显著图分辨率较低，需要将其通过插值进行上采样为最终显著图。下图\ref{fig:trans1}展示了Transformer attribution计算过程，对应于式\ref{eq:trans_ab_bar}和式\ref{eq:trans_c}。
-\begin{figure}[h]
+\begin{figure}[!ht]
 	\centering 
 	\includegraphics[width=15cm]{fig/ch2/trans1.png}
 	\bicaption[\xiaosi Transformer attribution 计算过程]{\wuhao Transformer attribution 计算过程}{\wuhao Transformer attribution calculation procedure}
@@ -437,7 +445,7 @@ Transformer attribution是H.Chefer等人\textsuperscript{\cite{chefer2021transfo
 \end{figure}
 
 \section{本章小结}
-本章首先简要介绍了卷积神经网络和Transformer架构的基础原理，它们也是当前图像分类神经网络的两种主要基础架构。然后本章重点介绍了当前5种比较著名的显著图解释方法的背后原理和显著图生成的计算过程，这5种方法分别是Grad-CAM，Grad-CAM++，Score-CAM，LRP和Transformer a ttribution。这5种显著图解释方法也是第3章和第4章实验对比的其中一些方法。
+本章首先简要介绍了卷积神经网络和Transformer架构的基础原理，它们也是当前图像分类神经网络的两种主要基础架构。然后本章重点介绍了当前5种比较著名的显著图解释方法的背后原理和显著图生成的计算过程，这5种方法分别是Grad-CAM，Grad-CAM++，Score-CAM，LRP和Transformer attribution。这5种显著图解释方法也是第3章和第4章实验对比的其中一些方法。
 
 
 
