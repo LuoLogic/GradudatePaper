@@ -68,10 +68,26 @@
 %		\makecell[c]{\songti\bfseries\sanhaod 学\qquad 院} 	&  \makecell[c]{\songti\bfseries\sanhaod 计算机科学与技术学院} \\
 %		\cline{2-2}
 	
-			
-			
+
+\ifAnonymity
 %如果是专硕，需要改为专业学位类别，表格列宽需要调整，请将上述部分替换为下面所示
 	\begin{tabular}{p{3.5cm}p{8.1cm}}
+	\makecell[c]{\songti\bfseries\sanhaod 专业学位类别} 	& \makecell[c]{\songti\bfseries\sanhaod 工程硕士} \\
+	\cline{2-2} 
+	\makecell[c]{\songti\bfseries\sanhaod 学\qquad \qquad 号} 	&  \makecell[c]{\songti\bfseries\sanhaod } \\
+	\cline{2-2} 
+	\makecell[c]{\songti\bfseries\sanhaod 作 \enspace 者\enspace 姓 \enspace 名} 	& \makecell[c]{\songti\bfseries\sanhaod } \\
+	\cline{2-2} 
+	\makecell[c]{\songti\bfseries\sanhaod 指 \enspace 导\enspace 教 \enspace 师} 	& \makecell[c]{\songti\bfseries\sanhaod } \\
+	\cline{2-2} 
+	\makecell[c]{\songti\bfseries\sanhaod 学\qquad \qquad 院} 	& \makecell[c]{\songti\bfseries\sanhaod }  \\
+	\cline{2-2}	
+ 		
+		\end{tabular}
+
+\else
+%如果是专硕，需要改为专业学位类别，表格列宽需要调整，请将上述部分替换为下面所示
+\begin{tabular}{p{3.5cm}p{8.1cm}}
 	\makecell[c]{\songti\bfseries\sanhaod 专业学位类别} 	& \makecell[c]{\songti\bfseries\sanhaod 工程硕士} \\
 	\cline{2-2} 
 	\makecell[c]{\songti\bfseries\sanhaod 学\qquad \qquad 号} 	&  \makecell[c]{\songti\bfseries\sanhaod S210231249} \\
@@ -82,8 +98,9 @@
 	\cline{2-2} 
 	\makecell[c]{\songti\bfseries\sanhaod 学\qquad \qquad 院} 	& \makecell[c]{\songti\bfseries\sanhaod 计算机科学与技术学院}  \\
 	\cline{2-2}	
- 		
-		\end{tabular}
+	
+\end{tabular}	
+\fi	
 	\end{table}
 
 \clearpage
@@ -123,8 +140,12 @@
 \dlmu[14cm]{\songti\bfseries\xiaoerd 基于图像分类神经网络的显著图解释研究}\\
 \vspace{5mm}
 %请在此输入作者姓名
-\dlmu[5cm]{\songti\bfseries\sanhaod 张涪源 }\\
 
+\ifAnonymity
+\dlmu[5cm]{\songti\bfseries\sanhaod }\\
+\else
+\dlmu[5cm]{\songti\bfseries\sanhaod 张涪源 }\\
+\fi
 
 \end{center}
 
@@ -133,26 +154,34 @@
 	\begin{table}[h]
 	\renewcommand\arraystretch{2}
 	\begin{tabular}{p{3cm}p{9cm}}
+		
+\ifAnonymity
+		\makecell[r]{\songti\xiaosid 指导教师}	& \makecell[c]{\songti\bfseries\sanhaod  \quad \, \quad  \quad \, \qquad } \\
+		\cline{2-2}
+\else
+
 %请在相关位置输入指导教师姓名，如果有第二导师请在第二行输入，如果没有，可以自行删去第二行
 		\makecell[r]{\songti\xiaosid 指导教师}	& \makecell[c]{\songti\bfseries\sanhaod  \quad \, 邓\quad 欣 \quad \, \qquad 副教授} \\
 		\cline{2-2}
 %		&  \makecell[c]{\songti\bfseries\sanhaod \quad \, 某\hspace{16pt}某 \quad \, \qquad 副教授}\\ 
 %		\cline{2-2}
+
+\fi
 	\end{tabular}
 \end{table}
 
 \vspace{30mm}
 
-
+\ifAnonymity
 	\begin{table}[!hb]
 	\centering
 	\renewcommand\arraystretch{2}
 	\begin{tabular}{p{2.6cm}p{0.4cm}p{0.8cm}p{2.8cm}p{2.6cm}p{4cm}}
 %请在相关位置输入相关信息，工程硕士、学硕及博士的部分类容有不同，请自行修改	
-		\makecell[l]{\songti\xiaosid 申请学位级别} 	&	\multicolumn{3}{c}{\songti\bfseries\sihaod 工程硕士} &	\makecell[c]{\songti\xiaosid 学科专业} & \makecell[c]{\songti\bfseries\sihaod 电子信息}\\
+		\makecell[l]{\songti\xiaosid 申请学位级别} 	&	\multicolumn{3}{c}{\songti\bfseries\sihaod 工程硕士} &	\makecell[c]{\songti\xiaosid 学科专业} & \makecell[c]{\songti\bfseries\sihaod }\\
 	\cline{2-4} \cline{6-6}
 	
-	\makecell[l]{\songti\xiaosid 专业学位领域} 	& \multicolumn{5}{c}{\songti\bfseries\sihaod 计算机技术} \\
+	\makecell[l]{\songti\xiaosid 专业学位领域} 	& \multicolumn{5}{c}{\songti\bfseries\sihaod } \\
 	 \cline{2-6}
 	 
 	 \multicolumn{2}{l}{\songti\xiaosid 答辩委员会主席} 	&	\multicolumn{2}{c}{\songti\bfseries\sihaod 某某某 \quad 教授} &	\makecell[c]{\songti\xiaosid 论文答辩日期} & \makecell[c]{\songti\bfseries\sihaod 2024年5月20日}\\
@@ -160,7 +189,25 @@
 	 
 	 \multicolumn{3}{l}{\songti\xiaosid 学位授予单位和日期} & \multicolumn{3}{c}{\songti\bfseries\sihaod 重庆邮电大学 \qquad 2024年6月}\\
 	 \cline{4-6}
-	 
+\else
+	\begin{table}[!hb]
+	\centering
+	\renewcommand\arraystretch{2}
+	\begin{tabular}{p{2.6cm}p{0.4cm}p{0.8cm}p{2.8cm}p{2.6cm}p{4cm}}
+		%请在相关位置输入相关信息，工程硕士、学硕及博士的部分类容有不同，请自行修改	
+		\makecell[l]{\songti\xiaosid 申请学位级别} 	&	\multicolumn{3}{c}{\songti\bfseries\sihaod 工程硕士} &	\makecell[c]{\songti\xiaosid 学科专业} & \makecell[c]{\songti\bfseries\sihaod 电子信息}\\
+		\cline{2-4} \cline{6-6}
+		
+		\makecell[l]{\songti\xiaosid 专业学位领域} 	& \multicolumn{5}{c}{\songti\bfseries\sihaod 计算机技术} \\
+		\cline{2-6}
+		
+		\multicolumn{2}{l}{\songti\xiaosid 答辩委员会主席} 	&	\multicolumn{2}{c}{\songti\bfseries\sihaod 某某某 \quad 教授} &	\makecell[c]{\songti\xiaosid 论文答辩日期} & \makecell[c]{\songti\bfseries\sihaod 2024年5月20日}\\
+		\cline{3-4} \cline{6-6}
+		
+		\multicolumn{3}{l}{\songti\xiaosid 学位授予单位和日期} & \multicolumn{3}{c}{\songti\bfseries\sihaod 重庆邮电大学 \qquad 2024年6月}\\
+		\cline{4-6}
+
+\fi
 
 	 
 	 	\end{tabular}
@@ -174,7 +221,7 @@
 	
 %	\begin{spacing}{1.0}
 %英文论文题目自行修改
-	\xiaoerd\textbf{The Research on Saliency Map Interpretation Based on Classification Neural Network}\\
+	\xiaoerd\textbf{Research on Saliency Map Interpretation Based on Image Classification Neural Networks}\\
 	
 	\vspace{60mm}
 %根据硕士或者博士，自行修改下面语句中的论文种类，标准请参照写作指南	
@@ -193,22 +240,39 @@
 	\centering
 	\renewcommand\arraystretch{2}
 	\begin{tabular}{p{2.5cm}p{11cm}}
-		
+
+\ifAnonymity
 %这是一个表格，在相应位置输入相关信息		
-		\makecell[r]{\sanhaod Discipline} 	& \makecell[c]{\bfseries\sanhaod Electronic and Information Engineering} \\
+		\makecell[r]{\sanhaod Discipline} 	& \makecell[c]{\bfseries\sanhaod } \\
 		\cline{2-2} 
-		\makecell[r]{\sanhaod Student ID} 	&  \makecell[c]{\bfseries\sanhaod S210231249} \\
+		\makecell[r]{\sanhaod Student ID} 	&  \makecell[c]{\bfseries\sanhaod } \\
 		\cline{2-2} 
-		\makecell[r]{\sanhaod Author} 	& \makecell[c]{\bfseries\sanhaod ZHANG Fuyuan} \\
+		\makecell[r]{\sanhaod Author} 	& \makecell[c]{\bfseries\sanhaod } \\
 		\cline{2-2} 
-		\makecell[r]{\sanhaod Supervisor} 	& \makecell[c]{\bfseries\sanhaod A.P.DENG Xin} \\
+		\makecell[r]{\sanhaod Supervisor} 	& \makecell[c]{\bfseries\sanhaod } \\
 		\cline{2-2} 
-		\makecell[r]{\sanhaod School} 	&  \makecell[c]{\bfseries\sanhaod School of Computer Science and Technology} \\
+		\makecell[r]{\sanhaod School} 	&  \makecell[c]{\bfseries\sanhaod } \\
 		\cline{2-2}			
 	\end{tabular}
 \end{table}
 
+\else
 
+%这是一个表格，在相应位置输入相关信息		
+\makecell[r]{\sanhaod Discipline} 	& \makecell[c]{\bfseries\sanhaod Electronic and Information Engineering} \\
+\cline{2-2} 
+\makecell[r]{\sanhaod Student ID} 	&  \makecell[c]{\bfseries\sanhaod S210231249} \\
+\cline{2-2} 
+\makecell[r]{\sanhaod Author} 	& \makecell[c]{\bfseries\sanhaod ZHANG Fuyuan} \\
+\cline{2-2} 
+\makecell[r]{\sanhaod Supervisor} 	& \makecell[c]{\bfseries\sanhaod A.P.DENG Xin} \\
+\cline{2-2} 
+\makecell[r]{\sanhaod School} 	&  \makecell[c]{\bfseries\sanhaod School of Computer Science and Technology} \\
+\cline{2-2}			
+\end{tabular}
+\end{table}
+
+\fi
 
 \end{center}
 \clearpage
